@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
 import 'login_mitra_screen.dart';
+import 'mitra_navigation_screen.dart';
+
+final supabase = Supabase.instance.client;
 
 class RegisterMitraKeahlianScreen extends StatefulWidget {
-  const RegisterMitraKeahlianScreen({super.key});
+  final String nama;
+  final String email;
+  final String whatsapp;
+  final String jurusan;
+  final String angkatan;
+  final String nrp;
+  final String password;
+  final File ktmImage;
+
+  const RegisterMitraKeahlianScreen({
+    super.key,
+    required this.nama,
+    required this.email,
+    required this.whatsapp,
+    required this.jurusan,
+    required this.angkatan,
+    required this.nrp,
+    required this.password,
+    required this.ktmImage,
+  });
 
   @override
   State<RegisterMitraKeahlianScreen> createState() =>
@@ -12,6 +36,7 @@ class RegisterMitraKeahlianScreen extends StatefulWidget {
 class _RegisterMitraKeahlianScreenState
     extends State<RegisterMitraKeahlianScreen> {
   final Set<String> _selectedKeahlian = {};
+  bool _isLoading = false;
 
   final List<_KeahlianItem> _keahlianList = [
     _KeahlianItem(
@@ -54,6 +79,84 @@ class _RegisterMitraKeahlianScreenState
       color: const Color(0xFF00695C),
     ),
   ];
+
+  Future<void> _registerMitra() async {
+    setState(() => _isLoading = true);
+    try {
+      // 1. Sign Up user in Supabase Auth
+      final response = await supabase.auth.signUp(
+        email: widget.email,
+        password: widget.password,
+        data: {
+          'full_name': widget.nama,
+        },
+      );
+
+      final authUser = response.user;
+      if (authUser == null) throw Exception('Gagal melakukan pendaftaran akun');
+
+      // 2. Insert into users table
+      final insertedUser = await supabase.from('users').insert({
+        'name': widget.nama,
+        'email': widget.email,
+        'phone': widget.whatsapp,
+        'identity_number': widget.nrp,
+        'identity_type': 'ktm',
+        'role': 'provider',
+      }).select('id').single();
+
+      final userId = insertedUser['id'] as int;
+
+      // 3. Upload KTM image to Storage
+      final fileName = 'ktm_mitra_$userId.jpg';
+      await supabase.storage
+          .from('identity_photos')
+          .upload(
+            fileName,
+            widget.ktmImage,
+            fileOptions: const FileOptions(upsert: true),
+          );
+      final ktmUrl = supabase.storage
+          .from('identity_photos')
+          .getPublicUrl(fileName);
+
+      // Update user with identity photo url
+      await supabase.from('users').update({
+        'identity_photo_url': ktmUrl,
+      }).eq('id', userId);
+
+      // 4. Insert into providers table
+      await supabase.from('providers').insert({
+        'user_id': userId,
+        'status': 'active',
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pendaftaran Mitra berhasil!'),
+            backgroundColor: Color(0xFF4CAF50),
+          ),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MitraNavigationScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error Pendaftaran: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,39 +228,30 @@ class _RegisterMitraKeahlianScreenState
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _selectedKeahlian.isEmpty
-                    ? null
-                    : () {
-                        // TODO: Implementasi registrasi mitra
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('Pendaftaran mitra akan segera tersedia'),
-                            backgroundColor: Color(0xFF4CAF50),
-                          ),
-                        );
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFD54F),
-                  foregroundColor: Colors.black87,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  disabledForegroundColor: Colors.grey.shade500,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  'DAFTAR',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _selectedKeahlian.isEmpty ? null : _registerMitra,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD54F),
+                        foregroundColor: Colors.black87,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: const Text(
+                        'DAFTAR',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
             ),
           ),
         ],

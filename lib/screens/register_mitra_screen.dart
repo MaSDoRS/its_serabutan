@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'login_mitra_screen.dart';
 import 'register_mitra_keahlian_screen.dart';
 
@@ -22,6 +24,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  File? _ktmImage;
 
   @override
   void dispose() {
@@ -35,6 +38,69 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
     _confirmPasswordController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickKtmImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _ktmImage = File(picked.path));
+    }
+  }
+
+  void _navigateToKeahlian() {
+    final nama = _namaController.text.trim();
+    final email = _emailController.text.trim();
+    final whatsapp = _whatsappController.text.trim();
+    final jurusan = _jurusanController.text.trim();
+    final angkatan = _angkatanController.text.trim();
+    final nrp = _nrpController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (nama.isEmpty ||
+        email.isEmpty ||
+        whatsapp.isEmpty ||
+        jurusan.isEmpty ||
+        angkatan.isEmpty ||
+        nrp.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua field harus diisi')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password tidak cocok')),
+      );
+      return;
+    }
+
+    if (_ktmImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap upload foto KTM terlebih dahulu')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RegisterMitraKeahlianScreen(
+          nama: nama,
+          email: email,
+          whatsapp: whatsapp,
+          jurusan: jurusan,
+          angkatan: angkatan,
+          nrp: nrp,
+          password: password,
+          ktmImage: _ktmImage!,
+        ),
+      ),
+    );
   }
 
   @override
@@ -153,9 +219,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 obscureText: _obscurePassword,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off
-                        : Icons.visibility,
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
                     color: Colors.grey,
                     size: 20,
                   ),
@@ -192,15 +256,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
               const SizedBox(height: 32),
               // Tombol Pilih Peran Keahlian
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const RegisterMitraKeahlianScreen(),
-                    ),
-                  );
-                },
+                onPressed: _navigateToKeahlian,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFD54F),
                   foregroundColor: Colors.black87,
@@ -354,14 +410,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
   Widget _buildUploadArea() {
     return GestureDetector(
-      onTap: () {
-        // TODO: Implementasi upload KTM
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Fitur upload akan segera tersedia'),
-          ),
-        );
-      },
+      onTap: _pickKtmImage,
       child: Container(
         width: double.infinity,
         height: 140,
@@ -373,26 +422,31 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
             width: 1.5,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add,
-              size: 32,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'KLIK UNTUK UPLOAD KTM',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
+        child: _ktmImage != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(_ktmImage!, fit: BoxFit.cover),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 32,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'KLIK UNTUK UPLOAD KTM',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

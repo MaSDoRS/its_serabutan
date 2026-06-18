@@ -6,14 +6,12 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:bantai_eas/main.dart';
+import 'package:bantai_eas/app.dart';
 
 void main() {
   testWidgets('app starts and shows main screen', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const ITSSerabutanApp());
 
-    expect(find.text('ITS Serabutan Mockup'), findsOneWidget);
-    expect(find.text('Pengguna'), findsOneWidget);
+    expect(find.text('ITS SERABUTAN'), findsOneWidget);
   });
 }

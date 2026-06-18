@@ -14,17 +14,32 @@ class LoginCustomerScreen extends StatefulWidget {
 
 class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
   bool _isLoading = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  Future<void> _loginWithGoogle() async {
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _formKey.currentState?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginWithEmailPassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isLoading = true);
     try {
-      await supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: 'io.supabase.flutter://login-callback/',
+      // 1. Proses Login ke Supabase Auth dengan Email & Password
+      await supabase.auth.signInWithPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      // Setelah OAuth sukses, pastikan baris di tabel users sudah ada,
-      // lalu cek apakah profil (phone/identity) sudah lengkap atau belum.
-      final isProfileComplete = await _ensureUserRowAndCheckProfile();
+
+      // 2. Cek apakah profil di tabel public.users sudah lengkap via auth_uid
+      final isProfileComplete = await _checkCustomerProfile();
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -39,7 +54,7 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal login dengan Google: $e')),
+          SnackBar(content: Text('Gagal masuk: $e')),
         );
       }
     } finally {
@@ -47,29 +62,20 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
     }
   }
 
-  // Memastikan ada baris di public.users untuk auth user ini.
-  // Karena id di tabel users adalah int8 auto-increment (bukan UUID auth),
-  // kita cari berdasarkan email. Kalau belum ada, baru insert baris baru
-  // dan biarkan database generate id integer-nya sendiri.
-  // Return true kalau profil (phone & identity_number) sudah lengkap.
-  Future<bool> _ensureUserRowAndCheckProfile() async {
+  // Mencari baris user berdasarkan auth_uid untuk mengecek kelengkapan data profil
+  Future<bool> _checkCustomerProfile() async {
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return false;
 
+    // Database Trigger secara otomatis membuatkan baris di public.users saat sign up.
+    // Kita cukup membaca datanya berdasarkan auth_uid (UUID session auth)
     final existing = await supabase
         .from('users')
         .select('phone, identity_number')
-        .eq('email', authUser.email ?? '')
+        .eq('auth_uid', authUser.id)
         .maybeSingle();
 
-    if (existing == null) {
-      await supabase.from('users').insert({
-        'name': authUser.userMetadata?['full_name'] ?? authUser.email,
-        'email': authUser.email,
-        'role': 'user',
-      });
-      return false; // baru dibuat, belum lengkap
-    }
+    if (existing == null) return false;
 
     return existing['phone'] != null && existing['identity_number'] != null;
   }
@@ -93,50 +99,64 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
         centerTitle: true,
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.account_circle,
-                size: 100,
-                color: Colors.blue.shade200,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Masuk dengan akun Google kamu\nuntuk melanjutkan',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-              const SizedBox(height: 32),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _loginWithGoogle,
-                        icon: const Icon(Icons.g_mobiledata, size: 28),
-                        label: const Text(
-                          'MASUK DENGAN GOOGLE',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_circle,
+                  size: 90,
+                  color: Colors.blue.shade200,
+                ),
+                const SizedBox(height: 24),
+                // Input Email
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  validator: (value) => (value == null || value.isEmpty) ? 'Email tidak boleh kosong' : null,
+                ),
+                const SizedBox(height: 16),
+                // Input Password
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  validator: (value) => (value == null || value.length < 6) ? 'Password minimal 6 karakter' : null,
+                ),
+                const SizedBox(height: 32),
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _loginWithEmailPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD54F),
+                            foregroundColor: Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 2,
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFD54F),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          child: const Text(
+                            'MASUK',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.5),
                           ),
-                          elevation: 2,
                         ),
                       ),
-                    ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

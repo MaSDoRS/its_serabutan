@@ -1,21 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'pilih_role_screen.dart';
 
-class ProfileMitraScreen extends StatelessWidget {
+final supabase = Supabase.instance.client;
+
+class ProfileMitraScreen extends StatefulWidget {
   const ProfileMitraScreen({super.key});
 
   @override
+  State<ProfileMitraScreen> createState() => _ProfileMitraScreenState();
+}
+
+class _ProfileMitraScreenState extends State<ProfileMitraScreen> {
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final email = supabase.auth.currentUser?.email;
+      if (email == null) return;
+
+      final data = await supabase
+          .from('users')
+          .select()
+          .eq('email', email)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _userData = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keluar dari Akun'),
+        content: const Text('Apakah Anda yakin ingin keluar?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Keluar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await supabase.auth.signOut();
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const PilihRoleScreen()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final nama = _userData?['name'] ?? supabase.auth.currentUser?.email ?? 'Mitra';
+    final email = _userData?['email'] ?? supabase.auth.currentUser?.email ?? '-';
+    final phone = _userData?['phone'] ?? '-';
+    final identityNumber = _userData?['identity_number'] ?? '-';
+    final isVerified = _userData?['identity_photo_url'] != null;
+
+    // Jurusan dan angkatan jika ada di database, atau default
+    final department = _userData?['department'] ?? _userData?['jurusan'] ?? '-';
+    final year = _userData?['year'] ?? _userData?['angkatan'] ?? '-';
+
     return SingleChildScrollView(
       child: Column(
         children: [
           const SizedBox(height: 24),
           // Avatar besar
-          _buildAvatar(),
+          _buildAvatar(nama),
           const SizedBox(height: 16),
           // Nama mitra
-          const Text(
-            'Ghaly Rakha',
-            style: TextStyle(
+          Text(
+            nama,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1565C0),
@@ -23,34 +109,35 @@ class ProfileMitraScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           // Status badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.verified, size: 14, color: Color(0xFF4CAF50)),
-                SizedBox(width: 4),
-                Text(
-                  'Mitra Terverifikasi',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF4CAF50),
+          if (isVerified)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.verified, size: 14, color: Color(0xFF4CAF50)),
+                  SizedBox(width: 4),
+                  Text(
+                    'Mitra Terverifikasi',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF4CAF50),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 24),
           // Stats row
           _buildStatsRow(),
           const SizedBox(height: 24),
           // Informasi Akun
-          _buildInformasiAkun(),
+          _buildInformasiAkun(email, phone, identityNumber, department, year),
           const SizedBox(height: 20),
           // Keahlian Aktif
           _buildKeahlianSection(),
@@ -69,7 +156,8 @@ class ProfileMitraScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(String nama) {
+    final initial = nama.isNotEmpty ? nama[0].toUpperCase() : 'M';
     return Container(
       width: 110,
       height: 110,
@@ -88,10 +176,15 @@ class ProfileMitraScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        Icons.person,
-        size: 56,
-        color: Colors.grey.shade400,
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1565C0),
+          ),
+        ),
       ),
     );
   }
@@ -156,7 +249,13 @@ class ProfileMitraScreen extends StatelessWidget {
     return Container(width: 1, height: 36, color: Colors.grey.shade200);
   }
 
-  Widget _buildInformasiAkun() {
+  Widget _buildInformasiAkun(
+    String email,
+    String phone,
+    String identityNumber,
+    String department,
+    String year,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
@@ -172,19 +271,15 @@ class ProfileMitraScreen extends StatelessWidget {
           children: [
             _buildSectionTitle('INFORMASI AKUN'),
             const SizedBox(height: 16),
-            _buildInfoRow(Icons.email_outlined, 'Email',
-                'ghalyrakha@gmail.com'),
+            _buildInfoRow(Icons.email_outlined, 'Email', email),
             const SizedBox(height: 14),
-            _buildInfoRow(
-                Icons.phone_android, 'WhatsApp', '0812-3456-7890'),
+            _buildInfoRow(Icons.phone_android, 'WhatsApp', phone),
             const SizedBox(height: 14),
-            _buildInfoRow(Icons.badge_outlined, 'NRP', '5024221001'),
+            _buildInfoRow(Icons.badge_outlined, 'NRP', identityNumber),
             const SizedBox(height: 14),
-            _buildInfoRow(Icons.school_outlined, 'Departemen',
-                'Teknik Informatika'),
+            _buildInfoRow(Icons.school_outlined, 'Departemen', department),
             const SizedBox(height: 14),
-            _buildInfoRow(
-                Icons.calendar_today_outlined, 'Angkatan', '2022'),
+            _buildInfoRow(Icons.calendar_today_outlined, 'Angkatan', year),
           ],
         ),
       ),
@@ -453,29 +548,7 @@ class ProfileMitraScreen extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Keluar dari Akun'),
-                content: const Text('Apakah Anda yakin ingin keluar?'),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Batal'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Keluar',
-                        style: TextStyle(color: Colors.red)),
-                  ),
-                ],
-              ),
-            );
-          },
+          onPressed: () => _logout(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFF48FB1),
             foregroundColor: Colors.white,
