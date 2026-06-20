@@ -14,7 +14,6 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
   final _hpPenerimaController = TextEditingController();
   final _titikJemputController = TextEditingController();
   final _titikAntarController = TextEditingController();
-
   int _beratBarang = 0;
   int _jumlahBarang = 0;
 
@@ -34,13 +33,12 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
       backgroundColor: const Color(0xFFF9F9F9),
       body: Column(
         children: [
-          // Header Curvy
           ClipPath(
             clipper: _HeaderClipper(),
             child: Container(
               width: double.infinity,
               height: 120,
-              decoration: const BoxDecoration(color: Color(0xFF73C2DF)),
+              decoration: const BoxDecoration(color: Color(0xFF1565C0)),
               child: SafeArea(
                 bottom: false,
                 child: Padding(
@@ -53,11 +51,12 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'Beranda Utama',
+                        'LOGISTIK',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1,
                         ),
                       ),
                     ],
@@ -66,137 +65,215 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
               ),
             ),
           ),
-
-          // Title
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'Buat Pesanan Logistik',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFFE5D529),
-                shadows: [
-                  Shadow(
-                    offset: Offset(0.5, 0.5),
-                    color: Colors.black12,
-                    blurRadius: 2,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Deskripsi Barang
-                  _buildInputCard(
-                    title: 'Deskripsi Barang',
-                    child: TextField(
-                      controller: _deskripsiController,
-                      maxLines: 3,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'Masukkan deskripsi barang',
-                        hintStyle: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black38,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        border: InputBorder.none,
-                      ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPillLabel('Deskripsi Barang'),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _deskripsiController,
+                          maxLines: 3,
+                          style: const TextStyle(fontSize: 13),
+                          decoration: const InputDecoration(
+                            hintText: 'Masukkan deskripsi barang yang dikirim...',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.black45),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Titik Jemput — sekarang bisa diisi!
-                  _buildInputCard(
-                    title: 'Titik Jemput Barang',
-                    child: TextField(
-                      controller: _titikJemputController,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Masukkan alamat titik jemput...',
-                        hintStyle: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade400,
+                  // Titik Jemput
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        border: InputBorder.none,
-                        prefixIcon: const Icon(
-                          Icons.circle,
-                          size: 14,
-                          color: Color(0xFFFFD54F),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPillLabel('Titik Jemput Barang'),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _titikJemputController,
+                          style: const TextStyle(fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan alamat titik jemput...',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            filled: true,
+                            fillColor: const Color(0xFFE3F2FD),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            prefixIcon: const Icon(Icons.circle, size: 14, color: Color(0xFFFFD54F)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Titik Antar — sekarang bisa diisi!
-                  _buildInputCard(
-                    title: 'Titik Antar Barang',
-                    child: TextField(
-                      controller: _titikAntarController,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Masukkan alamat tujuan pengiriman...',
-                        hintStyle: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade400,
+                  // Titik Antar
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        border: InputBorder.none,
-                        prefixIcon: const Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: Color(0xFFE53935),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPillLabel('Titik Antar Barang'),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _titikAntarController,
+                          style: const TextStyle(fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan alamat tujuan pengiriman...',
+                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            filled: true,
+                            fillColor: const Color(0xFFE3F2FD),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            prefixIcon: const Icon(Icons.location_on, size: 14, color: Color(0xFFE53935)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Nama & No HP
+                  // Nama & HP Penerima
                   Row(
                     children: [
                       Expanded(
-                        child: _buildInputCard(
-                          title: 'Nama Penerima',
-                          child: TextField(
-                            controller: _namaPenerimaController,
-                            style: const TextStyle(fontSize: 12),
-                            decoration: const InputDecoration(
-                              hintText: 'Nama Penerima',
-                              hintStyle: TextStyle(
-                                fontSize: 10,
-                                color: Colors.black38,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildPillLabel('Nama Penerima'),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _namaPenerimaController,
+                                style: const TextStyle(fontSize: 12),
+                                decoration: const InputDecoration(
+                                  hintText: 'Nama penerima...',
+                                  hintStyle: TextStyle(fontSize: 11, color: Colors.black38),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildInputCard(
-                          title: 'No. HP Penerima',
-                          child: TextField(
-                            controller: _hpPenerimaController,
-                            keyboardType: TextInputType.phone,
-                            style: const TextStyle(fontSize: 12),
-                            decoration: const InputDecoration(
-                              hintText: 'No. HP Penerima',
-                              hintStyle: TextStyle(
-                                fontSize: 10,
-                                color: Colors.black38,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                            ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildPillLabel('No. HP Penerima'),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _hpPenerimaController,
+                                keyboardType: TextInputType.phone,
+                                style: const TextStyle(fontSize: 12),
+                                decoration: const InputDecoration(
+                                  hintText: 'No. HP...',
+                                  hintStyle: TextStyle(fontSize: 11, color: Colors.black38),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -204,29 +281,27 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Berat & Jumlah Barang
+                  // Berat & Jumlah
                   Row(
                     children: [
                       Expanded(
                         child: _buildCounterCard(
-                          title: 'Berat Barang (KG)',
+                          label: 'Berat Barang (KG)',
                           value: _beratBarang,
                           onIncrement: () => setState(() => _beratBarang++),
                           onDecrement: () {
-                            if (_beratBarang > 0)
-                              setState(() => _beratBarang--);
+                            if (_beratBarang > 0) setState(() => _beratBarang--);
                           },
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildCounterCard(
-                          title: 'Jumlah Barang',
+                          label: 'Jumlah Barang',
                           value: _jumlahBarang,
                           onIncrement: () => setState(() => _jumlahBarang++),
                           onDecrement: () {
-                            if (_jumlahBarang > 0)
-                              setState(() => _jumlahBarang--);
+                            if (_jumlahBarang > 0) setState(() => _jumlahBarang--);
                           },
                         ),
                       ),
@@ -234,7 +309,6 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // Button Cari
                   SafeArea(
                     child: SizedBox(
                       width: double.infinity,
@@ -243,37 +317,32 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                           if (_titikJemputController.text.trim().isEmpty ||
                               _titikAntarController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Titik jemput dan titik antar harus diisi',
-                                ),
-                              ),
+                              const SnackBar(content: Text('Titik jemput dan titik antar harus diisi')),
                             );
                             return;
                           }
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const PilihPenyediaJasaScreen(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const PilihPenyediaJasaScreen()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFBE122),
                           foregroundColor: Colors.black87,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'CARI PENYEDIA JASA',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'CARI PENYEDIA JASA LOGISTIK',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, size: 20),
+                          ],
                         ),
                       ),
                     ),
@@ -288,54 +357,28 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
     );
   }
 
-  Widget _buildInputCard({required String title, required Widget child}) {
+  Widget _buildPillLabel(String text) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFF1565C0),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF73C2DF),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          child,
-        ],
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
       ),
     );
   }
 
   Widget _buildCounterCard({
-    required String title,
+    required String label,
     required int value,
     required VoidCallback onIncrement,
     required VoidCallback onDecrement,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -350,21 +393,7 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF73C2DF),
-              ),
-            ),
-          ),
+          _buildPillLabel(label),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -388,11 +417,7 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                         border: Border.all(color: const Color(0xFFFBE122)),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_up,
-                        size: 14,
-                        color: Color(0xFFFBE122),
-                      ),
+                      child: const Icon(Icons.keyboard_arrow_up, size: 14, color: Color(0xFFFBE122)),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -404,11 +429,7 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                         border: Border.all(color: const Color(0xFFFBE122)),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 14,
-                        color: Color(0xFFFBE122),
-                      ),
+                      child: const Icon(Icons.keyboard_arrow_down, size: 14, color: Color(0xFFFBE122)),
                     ),
                   ),
                 ],
@@ -426,12 +447,7 @@ class _HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 10,
-      size.width,
-      size.height - 30,
-    );
+    path.quadraticBezierTo(size.width / 2, size.height + 10, size.width, size.height - 30);
     path.lineTo(size.width, 0);
     path.close();
     return path;

@@ -81,34 +81,32 @@ class _RegisterMitraKeahlianScreenState
   ];
 
   Future<void> _registerMitra() async {
+    if (_isLoading) return;
     setState(() => _isLoading = true);
     try {
-      // 1. Sign Up user in Supabase Auth
+      // 1. Sign Up ke Supabase Auth
       final response = await supabase.auth.signUp(
         email: widget.email,
         password: widget.password,
-        data: {
-          'full_name': widget.nama,
-        },
+        data: {'full_name': widget.nama},
       );
 
       final authUser = response.user;
       if (authUser == null) throw Exception('Gagal melakukan pendaftaran akun');
 
-      // 2. Insert into users table
-      final insertedUser = await supabase.from('users').insert({
+      // 2. Insert ke tabel users dengan id = UUID dari Auth
+      await supabase.from('users').insert({
+        'id': authUser.id,
         'name': widget.nama,
         'email': widget.email,
         'phone': widget.whatsapp,
         'identity_number': widget.nrp,
         'identity_type': 'ktm',
         'role': 'provider',
-      }).select('id').single();
+      });
 
-      final userId = insertedUser['id'] as int;
-
-      // 3. Upload KTM image to Storage
-      final fileName = 'ktm_mitra_$userId.jpg';
+      // 3. Upload foto KTM
+      final fileName = 'ktm_mitra_${authUser.id}.jpg';
       await supabase.storage
           .from('identity_photos')
           .upload(
@@ -120,14 +118,13 @@ class _RegisterMitraKeahlianScreenState
           .from('identity_photos')
           .getPublicUrl(fileName);
 
-      // Update user with identity photo url
       await supabase.from('users').update({
         'identity_photo_url': ktmUrl,
-      }).eq('id', userId);
+      }).eq('id', authUser.id);
 
-      // 4. Insert into providers table
+      // 4. Insert ke tabel providers
       await supabase.from('providers').insert({
-        'user_id': userId,
+        'user_id': authUser.id,
         'status': 'active',
       });
 
@@ -189,10 +186,8 @@ class _RegisterMitraKeahlianScreenState
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 20),
-                    // Tab Masuk / Daftar
                     _buildTabSelector(),
                     const SizedBox(height: 28),
-                    // Header text
                     const Text(
                       'Apa saja yang bisa kamu kerjakan?',
                       style: TextStyle(
@@ -212,7 +207,6 @@ class _RegisterMitraKeahlianScreenState
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // List keahlian
                     ...List.generate(_keahlianList.length, (index) {
                       final item = _keahlianList[index];
                       return _buildKeahlianCard(item);
@@ -223,7 +217,6 @@ class _RegisterMitraKeahlianScreenState
               ),
             ),
           ),
-          // Tombol Daftar (sticky bottom)
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: SizedBox(
@@ -268,7 +261,6 @@ class _RegisterMitraKeahlianScreenState
       ),
       child: Row(
         children: [
-          // Tab Masuk
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -297,7 +289,6 @@ class _RegisterMitraKeahlianScreenState
               ),
             ),
           ),
-          // Tab Daftar (aktif)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -354,7 +345,6 @@ class _RegisterMitraKeahlianScreenState
             ),
             child: Row(
               children: [
-                // Icon
                 Container(
                   width: 44,
                   height: 44,
@@ -369,7 +359,6 @@ class _RegisterMitraKeahlianScreenState
                   ),
                 ),
                 const SizedBox(width: 14),
-                // Text
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,7 +385,6 @@ class _RegisterMitraKeahlianScreenState
                     ],
                   ),
                 ),
-                // Checkbox
                 const SizedBox(width: 8),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 200),

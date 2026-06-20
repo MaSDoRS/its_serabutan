@@ -7,9 +7,9 @@ class PilihMitraScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mitraList = [
-      {'nama': 'Arya Duta', 'jarak': '500m', 'selesai': '23x', 'harga': 'Rp 35.000'},
-      {'nama': 'Arya Duta', 'jarak': '500m', 'selesai': '23x', 'harga': 'Rp 35.000'},
-      {'nama': 'Arya Duta', 'jarak': '500m', 'selesai': '23x', 'harga': 'Rp 35.000'},
+      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
+      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
+      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
     ];
 
     return Scaffold(
@@ -104,8 +104,6 @@ class PilihMitraScreen extends StatelessWidget {
                 return _buildMitraCard(
                   context: context,
                   nama: mitra['nama']!,
-                  jarak: mitra['jarak']!,
-                  selesai: mitra['selesai']!,
                   harga: mitra['harga']!,
                 );
               },
@@ -119,8 +117,6 @@ class PilihMitraScreen extends StatelessWidget {
   Widget _buildMitraCard({
     required BuildContext context,
     required String nama,
-    required String jarak,
-    required String selesai,
     required String harga,
   }) {
     return Container(
@@ -194,7 +190,7 @@ class PilihMitraScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$jarak - Aktif',
+                              'Aktif',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey.shade500,
@@ -219,46 +215,7 @@ class PilihMitraScreen extends StatelessWidget {
                   // Row 2: Actions
                   Row(
                     children: [
-                      // Selesai badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE3F2FD),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Selesai $selesai',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1565C0),
-                          ),
-                        ),
-                      ),
                       const Spacer(),
-                      // Tawar button
-                      OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF29B6F6),
-                          side: const BorderSide(color: Color(0xFF29B6F6)),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          minimumSize: Size.zero,
-                        ),
-                        child: const Text(
-                          'Tawar',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
                       // Chat button
                       ElevatedButton(
                         onPressed: () {

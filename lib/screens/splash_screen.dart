@@ -64,17 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF4FC3F7), // Light blue
-              Color(0xFF29B6F6), // Medium blue
-              Color(0xFF03A9F4), // Blue
-            ],
-          ),
-        ),
+        color: const Color(0xFF1572BD), // Solid blue background
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -84,38 +74,33 @@ class _SplashScreenState extends State<SplashScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(flex: 2),
-                  // Maskot - menggunakan icon placeholder karena tidak ada asset gambar
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 130,
-                        height: 130,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.pets,
-                          size: 80,
-                          color: Colors.white,
-                        ),
-                      ),
+                  // Maskot - menggunakan gambar maskot bulat sempurna tanpa border putih
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/mascot.jpg',
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: 30),
                   // Nama Aplikasi
-                  const Text(
-                    'ITS SERABUTAN',
-                    style: TextStyle(
+                  Text.rich(
+                    const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'ITS ',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        TextSpan(
+                          text: 'SERABUTAN',
+                          style: TextStyle(color: Color(0xFFFFD54F)), // Warna kuning aksen
+                        ),
+                      ],
+                    ),
+                    style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
                       letterSpacing: 2.0,
                       shadows: [
                         Shadow(
@@ -128,22 +113,16 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   const SizedBox(height: 12),
                   // Tagline
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Kerja Apa yang Bisa Dikerjain di Sekitar ITS',
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Kerja Apa Aja yang Bisa Dikerjain di Sekitar ITS!',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),

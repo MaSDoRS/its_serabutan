@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'main_navigation_screen.dart';
+import 'login_customer_screen.dart';
+import 'register_customer_mahasiswa_screen.dart';
 
 final supabase = Supabase.instance.client;
 
-// Catatan: ini "Lengkapi Profil" untuk kategori Umum (pakai KTP, bukan KTM).
+// Register Customer Umum - kategori UMUM selected, upload KTP, bukan KTM
 class RegisterCustomerUmumScreen extends StatefulWidget {
   const RegisterCustomerUmumScreen({super.key});
 
@@ -18,25 +19,24 @@ class RegisterCustomerUmumScreen extends StatefulWidget {
 class _RegisterCustomerUmumScreenState
     extends State<RegisterCustomerUmumScreen> {
   final _namaController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _identityNumberController = TextEditingController(); // NIK
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _scrollController = ScrollController();
 
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   File? _ktpImage;
-
-  @override
-  void initState() {
-    super.initState();
-    final authUser = supabase.auth.currentUser;
-    _namaController.text = authUser?.userMetadata?['full_name'] ?? '';
-  }
 
   @override
   void dispose() {
     _namaController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
-    _identityNumberController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -49,39 +49,54 @@ class _RegisterCustomerUmumScreenState
     }
   }
 
-  Future<void> _saveProfile() async {
+  Future<void> _daftar() async {
     final nama = _namaController.text.trim();
+    final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
-    final identityNumber = _identityNumberController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (nama.isEmpty || phone.isEmpty || identityNumber.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Semua field harus diisi')));
+    if (nama.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua field harus diisi')),
+      );
       return;
     }
-
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password minimal 6 karakter')),
+      );
+      return;
+    }
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password tidak cocok')),
+      );
+      return;
+    }
     if (_ktpImage == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Harap upload foto KTP')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap upload foto KTP terlebih dahulu')),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final authUser = supabase.auth.currentUser;
-      if (authUser == null) throw Exception('Belum login');
+      // Register ke Supabase Auth
+      final authResponse = await supabase.auth.signUp(
+        email: email,
+        password: password,
+        data: {'full_name': nama},
+      );
 
-      final userRow = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', authUser.email ?? '')
-          .single();
-      final userId = userRow['id'] as int;
+      if (authResponse.user == null) throw Exception('Gagal membuat akun');
 
-      final fileName = 'ktp_$userId.jpg';
+      final authUser = authResponse.user!;
+
+      // Upload foto KTP
+      final fileName = 'ktp_${authUser.id}.jpg';
       await supabase.storage
           .from('identity_photos')
           .upload(
@@ -89,36 +104,37 @@ class _RegisterCustomerUmumScreenState
             _ktpImage!,
             fileOptions: const FileOptions(upsert: true),
           );
-      final ktpUrl = supabase.storage
-          .from('identity_photos')
-          .getPublicUrl(fileName);
+      final ktpUrl =
+          supabase.storage.from('identity_photos').getPublicUrl(fileName);
 
-      await supabase
-          .from('users')
-          .update({
-            'name': nama,
-            'phone': phone,
-            'identity_number': identityNumber,
-            'identity_type': 'ktp',
-            'identity_photo_url': ktpUrl,
-          })
-          .eq('id', userId);
+      // Insert ke tabel users
+      await supabase.from('users').upsert({
+        'auth_uid': authUser.id,
+        'name': nama,
+        'email': email,
+        'phone': phone,
+        'identity_type': 'ktp',
+        'identity_photo_url': ktpUrl,
+        'role': 'customer',
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil berhasil disimpan!')),
+          const SnackBar(
+            content: Text('Pendaftaran berhasil! Silakan masuk.'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+          MaterialPageRoute(builder: (context) => const LoginCustomerScreen()),
           (route) => false,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -130,12 +146,15 @@ class _RegisterCustomerUmumScreenState
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF48FB1),
+        backgroundColor: const Color(0xFF4FC3F7),
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
-          'Lengkapi Profil',
+          'Daftar Sebagai Customer',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -147,46 +166,249 @@ class _RegisterCustomerUmumScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              // Tab Masuk / Daftar
+              _buildTabSelector(),
+              const SizedBox(height: 20),
+              // Kategori Akun
+              _buildKategoriAkun(),
+              const SizedBox(height: 20),
+
               _buildLabel('NAMA LENGKAP'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _namaController,
-                hintText: 'Masukkan nama lengkap',
+                hintText: '',
               ),
               const SizedBox(height: 20),
-              _buildLabel('NIK'),
+              _buildLabel('EMAIL'),
               const SizedBox(height: 8),
               _buildTextField(
-                controller: _identityNumberController,
-                hintText: 'Masukkan NIK anda',
-                keyboardType: TextInputType.number,
+                controller: _emailController,
+                hintText: '',
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
               _buildLabel('NOMOR WHATSAPP'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _phoneController,
-                hintText: 'Contoh: 081234567890',
+                hintText: '',
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 20),
               _buildLabel('VERIFIKASI KTP'),
               const SizedBox(height: 8),
               _buildUploadArea(),
+              const SizedBox(height: 20),
+              _buildLabel('PASSWORD'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _passwordController,
+                hintText: '',
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildLabel('ULANGI PASSWORD'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _confirmPasswordController,
+                hintText: '',
+                obscureText: _obscureConfirmPassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                ),
+              ),
               const SizedBox(height: 32),
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildActionButton(
-                      label: 'SIMPAN PROFIL',
-                      color: const Color(0xFFFFD54F),
-                      onPressed: _saveProfile,
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7)),
+                      ),
+                    )
+                  : ElevatedButton(
+                      onPressed: _daftar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD54F),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 1,
+                      ),
+                      child: const Text(
+                        'DAFTAR',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1,
+                        ),
+                      ),
                     ),
               const SizedBox(height: 32),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTabSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          // Tab Masuk
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginCustomerScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Masuk',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Tab Daftar (aktif)
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade400),
+              ),
+              child: const Text(
+                'Daftar',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKategoriAkun() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel('KATEGORI AKUN'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            // Mahasiswa (tidak selected)
+            GestureDetector(
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const RegisterCustomerMahasiswaScreen(),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: Colors.grey.shade400, width: 2),
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'MAHASISWA',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            // Umum (selected)
+            Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: const Color(0xFF4FC3F7), width: 2),
+                    color: const Color(0xFF4FC3F7),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.circle, size: 8, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'UMUM',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -210,17 +432,18 @@ class _RegisterCustomerUmumScreenState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.badge_outlined,
-                    size: 40,
-                    color: Colors.blue.shade300,
+                    Icons.add,
+                    size: 32,
+                    color: Colors.grey.shade400,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap untuk upload foto KTP',
+                    'KLIK UNTUK UPLOAD KTP',
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.blue.shade400,
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
                       fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -244,20 +467,20 @@ class _RegisterCustomerUmumScreenState
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
+    bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
   }) {
     return TextField(
       controller: controller,
+      obscureText: obscureText,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
         filled: true,
         fillColor: const Color(0xFFE3F2FD),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -270,31 +493,7 @@ class _RegisterCustomerUmumScreenState
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
         ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.black87,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 2,
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5,
-        ),
+        suffixIcon: suffixIcon,
       ),
     );
   }

@@ -12,7 +12,7 @@ class BerandaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F5F5), // Light background to make cards pop
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -33,16 +33,12 @@ class BerandaScreen extends StatelessWidget {
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.fromLTRB(24, 28, 20, 32),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF29B6F6), Color(0xFF03A9F4), Color(0xFF0288D1)],
-        ),
+        color: Color(0xFF1572BD), // Solid blue background
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
       ),
       child: Row(
@@ -52,50 +48,45 @@ class BerandaScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                RichText(
-                  text: const TextSpan(
+                Text.rich(
+                  const TextSpan(
                     children: [
                       TextSpan(
                         text: 'ITS ',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(color: Colors.white),
                       ),
                       TextSpan(
                         text: 'SERABUTAN',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFFFFD54F),
-                        ),
+                        style: TextStyle(color: Color(0xFFFFD54F)),
                       ),
                     ],
                   ),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 const Text(
                   'Kerja Apa Aja yang Bisa Dikerjain di Sekitar ITS!',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: Colors.white,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Icon(Icons.pets, size: 36, color: Colors.white),
+          const SizedBox(width: 16),
+          ClipOval(
+            child: Image.asset(
+              'assets/images/mascot.jpg',
+              width: 70,
+              height: 70,
+              fit: BoxFit.cover,
             ),
           ),
         ],
@@ -109,20 +100,27 @@ class BerandaScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.15),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: TextField(
           decoration: InputDecoration(
-            hintText: 'Cari jasa apa hari ini?',
-            hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-            prefixIcon: Icon(Icons.search, color: Colors.grey.shade400),
+            hintText: 'Cari jasa apa hari ini? kami siap bantu dengan sepenuh hati!',
+            hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400, fontWeight: FontWeight.w400),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 8),
+              child: Icon(Icons.search, color: Colors.grey.shade400, size: 22),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(
@@ -130,17 +128,17 @@ class BerandaScreen extends StatelessWidget {
               vertical: 14,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(30),
               borderSide: const BorderSide(
-                color: Color(0xFF42A5F5),
+                color: Color(0xFF1572BD),
                 width: 1.5,
               ),
             ),
@@ -153,40 +151,28 @@ class BerandaScreen extends StatelessWidget {
   Widget _buildServiceGrid(BuildContext context) {
     final services = [
       _ServiceItem(
-        icon: Icons.motorcycle,
+        imagePath: 'assets/images/antar_jemput.png',
         label: 'Antar Jemput',
-        color: const Color(0xFFE3F2FD),
-        iconColor: const Color(0xFF1565C0),
       ),
       _ServiceItem(
-        icon: Icons.local_shipping,
+        imagePath: 'assets/images/tenaga_logistik.png',
         label: 'Tenaga & Logistik',
-        color: const Color(0xFFFFF3E0),
-        iconColor: const Color(0xFFE65100),
       ),
       _ServiceItem(
-        icon: Icons.cleaning_services,
+        imagePath: 'assets/images/kebersihan.png',
         label: 'Kebersihan',
-        color: const Color(0xFFE8F5E9),
-        iconColor: const Color(0xFF2E7D32),
       ),
       _ServiceItem(
-        icon: Icons.shopping_bag,
+        imagePath: 'assets/images/jastip_belanja.png',
         label: 'Jastip & Belanja',
-        color: const Color(0xFFF3E5F5),
-        iconColor: const Color(0xFF6A1B9A),
       ),
       _ServiceItem(
-        icon: Icons.build,
+        imagePath: 'assets/images/perbaikan_ringan.png',
         label: 'Perbaikan Ringan',
-        color: const Color(0xFFFCE4EC),
-        iconColor: const Color(0xFFC62828),
       ),
       _ServiceItem(
-        icon: Icons.people,
+        imagePath: 'assets/images/sosial_lainnya.png',
         label: 'Sosial & Lainnya',
-        color: const Color(0xFFE0F7FA),
-        iconColor: const Color(0xFF00695C),
       ),
     ];
 
@@ -197,9 +183,9 @@ class BerandaScreen extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 0.85,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: 0.82,
         ),
         itemCount: services.length,
         itemBuilder: (context, index) =>
@@ -238,44 +224,44 @@ class BerandaScreen extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (_) => screen!));
           }
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.grey.shade100),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: service.color,
-                  shape: BoxShape.circle,
+              const SizedBox(height: 8),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Image.asset(
+                    service.imagePath,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-                child: Icon(service.icon, size: 30, color: service.iconColor),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 service.label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1572BD), // Blue color from screenshot
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -285,14 +271,10 @@ class BerandaScreen extends StatelessWidget {
 }
 
 class _ServiceItem {
-  final IconData icon;
+  final String imagePath;
   final String label;
-  final Color color;
-  final Color iconColor;
   _ServiceItem({
-    required this.icon,
+    required this.imagePath,
     required this.label,
-    required this.color,
-    required this.iconColor,
   });
 }
