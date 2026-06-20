@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITS Serabutan: Ketika Burnout Mahasiswa Jadi Ide Aplikasi | Medium</title>
+  <meta name="description" content="Bagaimana satu pertanyaan 'siapa yang bisa bantu?' melahirkan platform jasa mahasiswa pertama di ITS Surabaya.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400&family=Inter:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- MEDIUM TOP NAV -->
+  <nav class="medium-nav" id="topNav">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <svg class="medium-logo" viewBox="0 0 3940 610" fill="currentColor">
+          <path d="M594.79 308.2c0 163.76-131.85 296.52-294.5 296.52S5.8 471.96 5.8 308.2 137.65 11.69 300.3 11.69s294.5 132.75 294.5 296.51M920.36 308.2c0 154.16-65.93 279.12-147.25 279.12s-147.25-124.96-147.25-279.12S691.79 29.08 773.11 29.08s147.25 124.96 147.25 279.12M1067.17 308.2c0 138.12-23.19 250.1-51.79 250.1s-51.79-112-51.79-250.1 23.19-250.1 51.8-250.1 51.78 112 51.78 250.1M1360.09 346.21L1220.07 252.4l-.03 340.69h-64.6V15.29l204.65 141.88 204.66-141.88v577.8h-64.6l-.03-340.69-140.03 93.81zM1867.75 491.47c-62.18 62.18-135.25 93.27-219.2 93.27-83.93 0-157-31.09-219.18-93.27-62.18-62.18-93.27-137.25-93.27-225.19 0-87.93 31.09-163 93.27-225.18 62.18-62.18 135.25-93.28 219.18-93.28 83.95 0 157.02 31.1 219.2 93.28 62.18 62.18 93.27 137.25 93.27 225.18 0 87.94-31.09 163.01-93.27 225.19zm-393.58-45.35c48.06 48.06 105.3 72.09 171.58 72.09 66.28 0 123.52-24.03 171.58-72.09 48.07-48.07 72.1-107.31 72.1-177.59 0-70.29-24.03-129.52-72.1-177.59-48.06-48.06-105.3-72.09-171.58-72.09-66.28 0-123.52 24.03-171.58 72.09-48.07 48.07-72.1 107.3-72.1 177.59 0 70.28 24.03 129.52 72.1 177.59zM2165.07 15.29h64.61v577.8h-64.6V15.29zM2539.53 15.29v64.6h-181.76v513.2h-64.6V79.89h-181.76V15.29h428.12zM2813.36 15.29v64.6h-181.76v513.2h-64.6V79.89h-181.76V15.29h428.12zM3100.45 491.47c-62.18 62.18-135.25 93.27-219.19 93.27-83.95 0-157.02-31.09-219.2-93.27-62.18-62.18-93.27-137.25-93.27-225.19 0-87.93 31.09-163 93.27-225.18 62.18-62.18 135.25-93.28 219.2-93.28 83.94 0 157.01 31.1 219.19 93.28 62.18 62.18 93.28 137.25 93.28 225.18 0 87.94-31.1 163.01-93.28 225.19zm-393.57-45.35c48.06 48.06 105.3 72.09 171.57 72.09 66.28 0 123.52-24.03 171.58-72.09 48.07-48.07 72.1-107.31 72.1-177.59 0-70.29-24.03-129.52-72.1-177.59-48.06-48.06-105.3-72.09-171.58-72.09-66.27 0-123.51 24.03-171.57 72.09-48.07 48.07-72.1 107.3-72.1 177.59 0 70.28 24.03 129.52 72.1 177.59z"/>
+        </svg>
+      </div>
+      <div class="nav-right">
+        <button class="nav-search-btn" aria-label="Search">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20.49 19l-5.73-5.73C15.53 12.2 16 10.91 16 9.5A6.5 6.5 0 1 0 9.5 16c1.41 0 2.7-.47 3.77-1.24L19 20.49 20.49 19zM5 9.5C5 7.01 7.01 5 9.5 5S14 7.01 14 9.5 11.99 14 9.5 14 5 11.99 5 9.5z" fill="currentColor"/></svg>
+        </button>
+        <button class="nav-write-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 4a.5.5 0 0 0 0-1v1zm7 6a.5.5 0 0 0-1 0h1zm-7-7H4v1h10V3zM3 4v16h1V4H3zm1 17h16v-1H4v1zm17-1V10h-1v10h1zm-1 1a1 1 0 0 0 1-1h-1v1zM3 20a1 1 0 0 0 1 1v-1H3zM4 3a1 1 0 0 0-1 1h1V3z" fill="currentColor"/><path d="m17.5 4.5-8.46 8.46a.25.25 0 0 0-.06.1l-.82 2.47c-.07.2.12.38.31.31l2.47-.82a.25.25 0 0 0 .1-.06L19.5 6.5m-2-2 2.32-2.32c.1-.1.26-.1.36 0l1.64 1.64c.1.1.1.26 0 .36L19.5 6.5m-2-2 2 2" stroke="currentColor"/></svg>
+          <span>Write</span>
+        </button>
+        <button class="nav-signin-btn">Sign in</button>
+        <button class="nav-getstarted-btn">Get started</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- READING PROGRESS BAR -->
+  <div class="reading-progress" id="readingProgress"></div>
+
+  <!-- ARTICLE CONTENT -->
+  <article class="article-container" id="articleContainer">
+
+    <!-- AUTHOR HEADER -->
+    <header class="article-header">
+      <div class="author-section">
+        <div class="author-avatar" id="authorAvatar">
+          <span>GR</span>
+        </div>
+        <div class="author-info">
+          <div class="author-name-row">
+            <a href="#" class="author-name">Ghaly Rakha Okusara</a>
+            <span class="follow-dot">·</span>
+            <button class="follow-btn" id="followBtn">Follow</button>
+          </div>
+          <div class="author-meta">
+            <span>Published in <strong>ITS Tech Stories</strong></span>
+            <span class="meta-dot">·</span>
+            <span>15 min read</span>
+            <span class="meta-dot">·</span>
+            <span>Jun 20, 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENGAGEMENT BAR -->
+      <div class="engagement-bar">
+        <div class="engagement-left">
+          <button class="clap-btn" id="clapBtn" aria-label="Clap">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M11.37 8.31a.5.5 0 0 0 .9-.41l-1.67-4.2a.5.5 0 1 0-.93.37l1.7 4.24zm6.28 6.9L14.18 9.1a.76.76 0 0 0-1.36.71l2.09 3.89-1.2-.53a.55.55 0 0 0-.72.28l-.01.02-2.38-4.38a.76.76 0 1 0-1.34.72l2.1 3.89-1.22-.54a.55.55 0 0 0-.72.28v.01l-2.08-3.84a.76.76 0 0 0-1.02-.33.75.75 0 0 0-.32 1.02l2.1 3.86-1.22-.53a.55.55 0 0 0-.72.28v.01l-1.63-3a.76.76 0 0 0-1.34.72l3.68 6.86c.57 1.09 1.25 1.42 2.46 1.42h4.2c2.6 0 3.83-1.84 3.83-4.6 0-.77-.18-1.54-.41-2.31z" fill="currentColor"/></svg>
+            <span class="clap-count" id="clapCount">247</span>
+          </button>
+          <button class="comment-btn" aria-label="Comments">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M18 16.8a7.14 7.14 0 0 0 2.24-5.32C20.24 7.16 16.57 4 12 4s-8.24 3.16-8.24 7.48c0 4.32 3.67 7.48 8.24 7.48.71 0 1.4-.08 2.07-.24a.6.6 0 0 1 .33 0l3.15.85a.42.42 0 0 0 .54-.54l-.84-3.15a.6.6 0 0 1 0-.33z" fill="currentColor"/></svg>
+            <span>18</span>
+          </button>
+        </div>
+        <div class="engagement-right">
+          <button class="action-btn bookmark-btn" id="bookmarkBtn" aria-label="Save">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M17.5 1.25a.5.5 0 0 1 1 0v2.5H21a.5.5 0 0 1 0 1h-2.5v2.5a.5.5 0 0 1-1 0v-2.5H15a.5.5 0 0 1 0-1h2.5v-2.5zm-11 4.5a1 1 0 0 1 1-1H11a.5.5 0 0 0 0-1H7.5a2 2 0 0 0-2 2v14a.5.5 0 0 0 .8.4l5.7-4.4 5.7 4.4a.5.5 0 0 0 .8-.4v-8.5a.5.5 0 0 0-1 0v7.48l-5.2-4a.5.5 0 0 0-.6 0l-5.2 4V5.75z" fill="currentColor"/></svg>
+          </button>
+          <button class="action-btn share-btn" id="shareBtn" aria-label="Share">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15.22 4.93a.42.42 0 0 1-.12.13h.01a.45.45 0 0 1-.29.08.52.52 0 0 1-.3-.13L12.5 3v7.07a.5.5 0 0 1-.5.5.5.5 0 0 1-.5-.5V3.02l-2 1.98a.45.45 0 0 1-.57.04h-.02a.4.4 0 0 1-.16-.3.42.42 0 0 1 .12-.33L11.6 1.7a.5.5 0 0 1 .7 0l2.83 2.83a.42.42 0 0 1 .09.4zm-3.18 9.71a.5.5 0 0 0 .5-.5V6.66l3.55-.03c.67 0 1.41.59 1.41 1.32v11.6c0 .73-.74 1.33-1.41 1.33H7.96c-.67 0-1.41-.6-1.41-1.33V7.95c0-.73.74-1.32 1.41-1.32l3.58.03v7.48c0 .28.22.5.5.5z" fill="currentColor"/></svg>
+          </button>
+          <button class="action-btn more-btn" aria-label="More">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M7 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO IMAGE -->
+    <figure class="hero-image" id="heroImage">
+      <img src="assets/hero_banner.png" alt="ITS Serabutan - Platform Jasa Mahasiswa ITS Surabaya" loading="eager">
+      <figcaption>ITS Serabutan — Platform jasa antar-mahasiswa pertama di lingkungan ITS Surabaya</figcaption>
+    </figure>
+
+    <!-- ARTICLE TITLE -->
+    <h1 class="article-title">ITS Serabutan: Ketika Burnout Mahasiswa Jadi Ide Aplikasi</h1>
+    <h2 class="article-subtitle">Bagaimana satu pertanyaan "siapa yang bisa bantu?" melahirkan platform jasa mahasiswa pertama di ITS Surabaya.</h2>
+
+    <!-- ARTICLE BODY -->
+    <div class="article-body">
+
+      <p class="lead-paragraph">Pernah nggak kamu sebagai anak kos merasa kewalahan? Tugas numpuk, kamar berantakan, lapar tapi males keluar, dan nggak ada siapa-siapa yang bisa dimintai tolong. Di sisi lain, ada temenmu yang lagi butuh uang jajan tambahan tapi bingung harus kerja apa yang bisa disesuaikan sama jadwal kuliah.</p>
+
+      <p>Dua masalah yang berbeda — tapi solusinya bisa satu.</p>
+
+      <p>Itulah yang jadi titik awal lahirnya <strong>ITS Serabutan</strong>.</p>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: LATAR BELAKANG -->
+      <h2 id="latar-belakang">Latar Belakang: Dua Krisis yang Sering Diabaikan</h2>
+
+      <p>Kami tim mahasiswa <strong>Teknologi Kedokteran ITS</strong> melakukan asesmen lapangan di lingkungan kampus dan menemukan dua pola yang konsisten:</p>
+
+      <!-- HIGHLIGHT CARDS -->
+      <div class="highlight-cards" id="highlightCards">
+        <div class="highlight-card card-problem">
+          <div class="card-icon">😔</div>
+          <h3>Yang Butuh Jasa</h3>
+          <p>Beban hidup mandiri yang besar: mengurus kebutuhan harian sendiri, tidak punya jaringan bantuan, dan lama-kelamaan memicu <strong>isolasi sosial hingga burnout</strong>. Ini bukan sekadar capek biasa — ini masalah kesehatan mental nyata yang dialami ribuan mahasiswa perantau setiap tahunnya.</p>
+        </div>
+        <div class="highlight-card card-opportunity">
+          <div class="card-icon">💡</div>
+          <h3>Yang Punya Keahlian</h3>
+          <p>Mahasiswa yang punya waktu dan kemampuan <strong>tidak punya wadah formal</strong> untuk menghasilkan uang dari keahlian sehari-hari mereka. Mau ngiklan di TikTok atau WA grup? Bisa, tapi tidak ada sistem, tidak ada kepercayaan, dan sering miskomunikasi.</p>
+        </div>
+      </div>
+
+      <p>Kami juga mewawancarai langsung <strong>Hegel dan Fitra</strong>, founder ITS Serabutan — layanan jasa mahasiswa yang sudah berjalan manual via WhatsApp sejak Maret 2026. Faktanya: dalam hitungan minggu, mereka sudah kewalahan dengan permintaan yang tidak bisa ditangani. Sistemnya belum ada, tapi permintaannya nyata.</p>
+
+      <figure class="article-image wide-image fade-in-up">
+        <img src="assets/team_interview.jpg" alt="Dokumentasi wawancara asesmen lapangan" loading="lazy">
+        <figcaption>Diskusi santai dan asesmen lapangan bersama mahasiswa ITS untuk memahami pain-points mereka.</figcaption>
+      </figure>
+
+      <!-- STATS COUNTER -->
+      <div class="stats-section" id="statsSection">
+        <div class="stat-item">
+          <div class="stat-number" data-target="500">0</div>
+          <div class="stat-label">Order dalam 3 bulan pertama (manual via WA)</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="6">0</div>
+          <div class="stat-label">Kategori jasa yang teridentifikasi</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="32">0</div>
+          <div class="stat-label">Screen UI yang dirancang</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" data-target="9">0</div>
+          <div class="stat-label">Tabel database terintegrasi</div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: SOLUSI -->
+      <h2 id="solusi">Solusi: Platform Jasa yang Aman, Terstruktur, dan Bermartabat</h2>
+
+      <p>Dari situ kami merancang <strong>ITS Serabutan</strong> — aplikasi mobile yang menghubungkan:</p>
+
+      <ul class="role-list">
+        <li><strong>Customer</strong> — mahasiswa atau warga yang butuh bantuan</li>
+        <li><strong>Mitra</strong> — mahasiswa ITS yang ingin menghasilkan dari keahlian mereka</li>
+      </ul>
+
+      <p>Yang membedakan ITS Serabutan dari sekadar grup WhatsApp:</p>
+
+      <!-- FEATURE CHECKLIST -->
+      <div class="feature-checklist" id="featureChecklist">
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">
+            <strong>Verifikasi identitas</strong> — KTM untuk mahasiswa ITS, KTP untuk umum
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">
+            <strong>Negosiasi harga transparan</strong> — model InDrive, bukan harga sepihak
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">
+            <strong>Real-time tracking</strong> — status pesanan selalu terupdate
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">
+            <strong>Bayar setelah selesai</strong> — sesuai kepercayaan komunitas
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-check">✅</div>
+          <div class="feature-text">
+            <strong>Profil publik mitra</strong> — dengan rating dan foto portofolio hasil kerja
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: FITUR UTAMA -->
+      <h2 id="fitur-utama">Fitur Utama: 6 Kategori Jasa</h2>
+
+      <figure class="article-image wide-image fade-in-up side-by-side-mockups">
+        <img src="assets/app_mockup_1.png" alt="Tampilan Splash Screen" loading="lazy">
+        <img src="assets/app_mockup_2.png" alt="Tampilan Role Selection" loading="lazy">
+        <figcaption>Antarmuka aplikasi yang simpel, fresh, dan dirancang khusus untuk kenyamanan pengguna mahasiswa.</figcaption>
+      </figure>
+
+      <p>Aplikasi ini mencakup enam kategori jasa yang dirancang berdasarkan kebutuhan nyata mahasiswa ITS:</p>
+
+      <!-- SERVICE GRID -->
+      <div class="service-grid" id="serviceGrid">
+
+        <div class="service-card" data-category="transport">
+          <div class="service-icon">🛵</div>
+          <h3>Antar Jemput</h3>
+          <p>Pesan ojek dari sesama mahasiswa. Tarif sudah ada referensi zonanya — sekitar ITS (Keputih/Mulyosari) <strong>Rp8.000</strong>, ke Unair/Gubeng <strong>Rp15.000</strong>, Surabaya Barat <strong>Rp25.000</strong>. Harga bisa dinegosiasi.</p>
+          <div class="service-tag">Paling Populer</div>
+        </div>
+
+        <div class="service-card" data-category="logistics">
+          <div class="service-icon">💪</div>
+          <h3>Tenaga & Logistik</h3>
+          <p>Rakit perabot, angkut barang, pasang lampu, bantu pindahan. Untuk yang baru pindah kos atau beli furniture online tapi bingung rakitnya gimana.</p>
+          <div class="service-tag">High Demand</div>
+        </div>
+
+        <div class="service-card" data-category="cleaning">
+          <div class="service-icon">🧹</div>
+          <h3>Kebersihan</h3>
+          <p>Bersih-bersih kamar kos, cuci motor, hingga bersih-bersih tempat usaha. Tinggal tentukan jumlah orang dan budget-mu.</p>
+          <div class="service-tag">Recurring</div>
+        </div>
+
+        <div class="service-card" data-category="shopping">
+          <div class="service-icon">🛒</div>
+          <h3>Jastip & Belanja</h3>
+          <p>Minta tolong beliin sesuatu di minimarket. Ada alur khusus: mitra kirim <strong>foto struk dulu</strong> sebelum kembali, jadi harga transparan tanpa kejutan.</p>
+          <div class="service-tag">Transparan</div>
+        </div>
+
+        <div class="service-card" data-category="repair">
+          <div class="service-icon">🔧</div>
+          <h3>Perbaikan Ringan</h3>
+          <p>Gembok cakram tidak bisa dibuka, lampu mati, keran bocor — jasa teknis kecil yang susah dikerjain sendiri tapi terlalu kecil untuk panggil tukang.</p>
+          <div class="service-tag">Niche</div>
+        </div>
+
+        <div class="service-card" data-category="social">
+          <div class="service-icon">🤝</div>
+          <h3>Sosial & Lainnya</h3>
+          <p>Teman makan? Teman belajar? Titip kucing? Atau yang lebih kreatif — cari kodok, nagih hutang, mantau orang di kafe. <strong>Beneran pernah ada ordernya!</strong></p>
+          <div class="service-tag">Paling Unik</div>
+        </div>
+
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: CARA KERJA -->
+      <h2 id="cara-kerja">Cara Kerja: Model InDrive yang Adil</h2>
+
+      <figure class="article-image wide-image">
+        <img src="assets/flow_diagram.png" alt="Alur pemesanan ITS Serabutan" loading="lazy">
+        <figcaption>Alur pemesanan jasa — dari buka aplikasi hingga pembayaran</figcaption>
+      </figure>
+
+      <p>Yang bikin ITS Serabutan berbeda dari Gojek atau platform lain: <strong>kamu yang tentukan harganya dulu.</strong></p>
+
+      <!-- INTERACTIVE FLOW STEPS -->
+      <div class="flow-steps" id="flowSteps">
+        <div class="flow-step active" data-step="1">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>Buka Aplikasi</h4>
+            <p>Login dengan email, pilih kategori jasa yang kamu butuhkan</p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="2">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Isi Detail Pesanan</h4>
+            <p>Tentukan lokasi, deskripsi pekerjaan, dan <strong>tentukan budget-mu</strong></p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="3">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Sistem Broadcast</h4>
+            <p>Pesananmu dikirim ke mitra yang sesuai kategori di sekitar area</p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="4">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>Mitra Merespons</h4>
+            <p>Mitra menerima hargamu atau <strong>menawarkan harga lain</strong></p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="5">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h4>Pilih Mitra</h4>
+            <p>Lihat profil, rating, dan harga tiap mitra — lalu pilih yang cocok</p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="6">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <h4>Eksekusi & Tracking</h4>
+            <p>Mitra kerjakan pesanan dengan update status real-time</p>
+          </div>
+        </div>
+        <div class="flow-step" data-step="7">
+          <div class="step-number">7</div>
+          <div class="step-content">
+            <h4>Selesai & Bayar</h4>
+            <p>Konfirmasi selesai → <strong>baru bayar</strong>. Mitra dapat 100% dari harga</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALLOUT -->
+      <div class="callout-box">
+        <div class="callout-icon">💡</div>
+        <div class="callout-content">
+          <strong>Tidak ada uang keluar sebelum pekerjaan beres.</strong> Mitra mendapat 100% dari harga yang disepakati — tanpa potongan platform.
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: DEMO INTERAKTIF -->
+      <h2 id="demo">Demo Interaktif: Rasakan Langsung Alur Pesanan</h2>
+
+      <p>Berikut simulasi singkat bagaimana percakapan negosiasi di ITS Serabutan berlangsung:</p>
+
+      <!-- INTERACTIVE PHONE MOCKUP -->
+      <div class="phone-mockup" id="phoneMockup">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <!-- Chat Header -->
+            <div class="mock-header">
+              <div class="mock-back">←</div>
+              <div class="mock-avatar">A</div>
+              <div class="mock-user-info">
+                <div class="mock-name">Arya Duta</div>
+                <div class="mock-status">Online</div>
+              </div>
+            </div>
+            <!-- Chat Messages -->
+            <div class="mock-chat" id="mockChat">
+              <div class="mock-message incoming" data-delay="0">
+                <div class="mock-bubble">Halo! Saya bisa bantu rakit mejanya. Butuh berapa lama? 😊</div>
+                <div class="mock-time">08:15</div>
+              </div>
+              <div class="mock-message outgoing" data-delay="800">
+                <div class="mock-bubble">Kira-kira 2 jam. IKEA LINNMON 1 set + rak buku kecil. Bisa Rp 50k?</div>
+                <div class="mock-time">08:16</div>
+              </div>
+              <div class="mock-message incoming" data-delay="1600">
+                <div class="mock-bubble">Untuk 2 item saya minta Rp 60k ya kak, saya bawa tools sendiri 🔧</div>
+                <div class="mock-time">08:17</div>
+              </div>
+              <div class="mock-message system-nego" data-delay="2400">
+                <div class="nego-card">
+                  <div class="nego-title">💰 Penawaran Harga</div>
+                  <div class="nego-price">Rp 55.000</div>
+                  <div class="nego-actions">
+                    <button class="nego-accept" id="negoAccept">✓ Setuju</button>
+                    <button class="nego-decline" id="negoDecline">✗ Tawar Lagi</button>
+                  </div>
+                </div>
+              </div>
+              <div class="mock-message system-agreed" data-delay="0" style="display:none" id="agreedMessage">
+                <div class="agreed-card">
+                  <div class="agreed-icon">🎉</div>
+                  <div class="agreed-text">Harga disepakati! Rp 55.000</div>
+                  <div class="agreed-sub">Mitra sedang dalam perjalanan...</div>
+                </div>
+              </div>
+            </div>
+            <!-- Chat Input -->
+            <div class="mock-input">
+              <div class="mock-input-field">Ketik pesan...</div>
+              <div class="mock-send-btn">↑</div>
+            </div>
+          </div>
+        </div>
+        <p class="mockup-caption">↑ Coba klik tombol "Setuju" pada negosiasi di atas!</p>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: TEKNOLOGI -->
+      <h2 id="teknologi">Di Balik Layar: Teknologi yang Kami Pakai</h2>
+
+      <p>Untuk yang penasaran dengan sisi teknisnya:</p>
+
+      <!-- TECH STACK TABLE -->
+      <div class="tech-stack" id="techStack">
+        <div class="tech-item">
+          <div class="tech-icon">📱</div>
+          <div class="tech-label">Frontend</div>
+          <div class="tech-value">Flutter (Dart)</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">⚡</div>
+          <div class="tech-label">Backend</div>
+          <div class="tech-value">Supabase</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🗄️</div>
+          <div class="tech-label">Database</div>
+          <div class="tech-value">PostgreSQL</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🔄</div>
+          <div class="tech-label">State Management</div>
+          <div class="tech-value">Riverpod</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🧭</div>
+          <div class="tech-label">Navigasi</div>
+          <div class="tech-value">GoRouter</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🔐</div>
+          <div class="tech-label">Auth</div>
+          <div class="tech-value">Email + Verifikasi KTM/KTP</div>
+        </div>
+      </div>
+
+      <p>Kenapa <strong>Flutter</strong>? Satu codebase untuk Android & iOS, dan arsitekturnya bersih untuk tim yang membagi kerja per fitur. Kenapa <strong>Supabase</strong>? Gratis untuk skala mahasiswa, sudah include auth, realtime, dan storage untuk foto KTM dan struk jastip.</p>
+
+      <!-- CODE SNIPPET -->
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">dart</span>
+          <span class="code-file">lib/screens/beranda_screen.dart</span>
+        </div>
+        <pre><code>final services = [
+  ServiceItem(icon: Icons.motorcycle,        label: 'Antar Jemput'),
+  ServiceItem(icon: Icons.local_shipping,    label: 'Tenaga & Logistik'),
+  ServiceItem(icon: Icons.cleaning_services, label: 'Kebersihan'),
+  ServiceItem(icon: Icons.shopping_bag,      label: 'Jastip & Belanja'),
+  ServiceItem(icon: Icons.build,             label: 'Perbaikan Ringan'),
+  ServiceItem(icon: Icons.people,            label: 'Sosial & Lainnya'),
+];</code></pre>
+      </div>
+
+      <p>Database dirancang dengan <strong>9 tabel utama</strong> yang mengakomodasi semua alur — dari <code>ORDER_BIDS</code> untuk sistem tawar-menawar hingga <code>JASTIP_RECEIPTS</code> yang khusus menyimpan foto struk belanja.</p>
+
+      <!-- DATABASE ARCHITECTURE -->
+      <div class="db-architecture" id="dbArchitecture">
+        <h4>📊 Arsitektur Database (9 Tabel)</h4>
+        <div class="db-grid">
+          <div class="db-table primary">
+            <div class="db-name">USERS</div>
+            <div class="db-desc">Profil customer & mitra</div>
+          </div>
+          <div class="db-table primary">
+            <div class="db-name">ORDERS</div>
+            <div class="db-desc">Data pesanan utama</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">ORDER_BIDS</div>
+            <div class="db-desc">Sistem tawar-menawar</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">CATEGORIES</div>
+            <div class="db-desc">6 kategori jasa</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">MITRA_SKILLS</div>
+            <div class="db-desc">Keahlian mitra</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">REVIEWS</div>
+            <div class="db-desc">Rating & ulasan</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">CHATS</div>
+            <div class="db-desc">Riwayat percakapan</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">JASTIP_RECEIPTS</div>
+            <div class="db-desc">Foto struk belanja</div>
+          </div>
+          <div class="db-table">
+            <div class="db-name">SHOWCASE</div>
+            <div class="db-desc">Portofolio mitra</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: PROSES -->
+      <h2 id="proses">Proses: Dari Asesmen Lapangan ke Kode</h2>
+
+      <p>Kami tidak langsung coding. Prosesnya dimulai dari pendekatan yang terstruktur:</p>
+
+      <!-- TIMELINE -->
+      <div class="process-timeline" id="processTimeline">
+        <div class="timeline-item">
+          <div class="timeline-marker">1</div>
+          <div class="timeline-content">
+            <h4>Asesmen Lapangan</h4>
+            <p>Wawancara dengan founder ITS Serabutan, mahasiswa ITS, dan analisis sistem yang sudah berjalan secara informal via WhatsApp.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">2</div>
+          <div class="timeline-content">
+            <h4>Perancangan Sistem</h4>
+            <p>Flowchart bisnis 13 langkah (3 jalur aktor), ERD 9 tabel, dan arsitektur 3 layer.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">3</div>
+          <div class="timeline-content">
+            <h4>Desain UI/UX</h4>
+            <p>Di Figma, dengan sistem warna <span class="color-swatch" style="background:#29B6F6"></span> biru dan <span class="color-swatch" style="background:#FFD54F"></span> kuning mengacu identitas ITS, total <strong>20+ screen</strong>.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-marker">4</div>
+          <div class="timeline-content">
+            <h4>Development</h4>
+            <p>Dibagi per fitur: Product Owner, Scrum Master, UI/UX, Frontend, Backend. Dikelola dengan metode <strong>Scrum</strong> dalam 5 sprint.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSIGHT BOX -->
+      <div class="insight-box">
+        <div class="insight-header">
+          <span class="insight-tag">💎 Insight</span>
+        </div>
+        <p>Desain yang dibuat dengan AI (untuk kerangka awal) vs desain dari hasil interview lapangan punya perbedaan signifikan. AI tidak tahu bahwa tarif zona di sekitar ITS sudah terstandarisasi secara informal — Rp8.000 untuk jarak dekat, Rp15.000 untuk menengah. <strong>Data itu hanya bisa dapat dari wawancara langsung.</strong></p>
+      </div>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: DAMPAK -->
+      <h2 id="dampak">Dampak yang Diharapkan</h2>
+
+      <p>Lebih dari sekadar aplikasi pemesanan jasa, ITS Serabutan punya misi yang lebih dalam:</p>
+
+      <!-- IMPACT CARDS -->
+      <div class="impact-section" id="impactSection">
+        <div class="impact-card">
+          <div class="impact-emoji">🧠</div>
+          <h3>Untuk yang Burnout</h3>
+          <p>Ada bantuan nyata yang bisa dipesan kapan saja, bahkan sekadar teman makan agar tidak sendirian.</p>
+        </div>
+        <div class="impact-card">
+          <div class="impact-emoji">💰</div>
+          <h3>Untuk yang Butuh Penghasilan</h3>
+          <p>Platform aman dan terpercaya yang <strong>tidak memotong pendapatan</strong> mereka.</p>
+        </div>
+        <div class="impact-card">
+          <div class="impact-emoji">🤝</div>
+          <h3>Untuk Komunitas ITS</h3>
+          <p>Ekosistem saling membantu yang terstruktur dan bermartabat antar mahasiswa.</p>
+        </div>
+      </div>
+
+      <blockquote class="pull-quote">
+        <p>Kami percaya bahwa teknologi yang paling bermakna bukan yang paling canggih, tapi yang paling relevan dengan masalah nyata orang-orang di sekitar kita.</p>
+      </blockquote>
+
+      <div class="section-divider">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- SECTION: PENUTUP -->
+      <h2 id="penutup">Penutup</h2>
+
+      <p>ITS Serabutan lahir dari satu pertanyaan sederhana: <em>"Siapa yang bisa bantu?"</em></p>
+
+      <p>Dan jawabannya ternyata ada di sekitar kita — sesama mahasiswa yang juga sedang berjuang, tapi punya keahlian dan waktu yang bisa saling mengisi.</p>
+
+      <p>Kalau kamu mahasiswa ITS atau tinggal di sekitar Sukolilo Surabaya — nantikan aplikasinya. Dan kalau kamu punya keahlian apapun yang bisa membantu orang lain — daftarkan dirimu sebagai mitra.</p>
+
+      <p class="closing-tagline">Kerja apa aja yang bisa dikerjain di sekitar ITS? <strong>Semuanya bisa.</strong></p>
+
+      <!-- CTA SECTION -->
+      <div class="cta-section" id="ctaSection">
+        <div class="cta-content">
+          <h3>🚀 Tertarik Menjadi Bagian dari ITS Serabutan?</h3>
+          <p>Daftarkan dirimu sebagai mitra dan mulai hasilkan uang dari keahlianmu.</p>
+          <div class="cta-buttons">
+            <button class="cta-primary" onclick="alert('Aplikasi segera hadir! Stay tuned 🎉')">Daftar Sebagai Mitra</button>
+            <button class="cta-secondary" onclick="alert('Aplikasi segera hadir! Stay tuned 🎉')">Pesan Jasa Sekarang</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ARTICLE FOOTER -->
+    <footer class="article-footer">
+
+      <!-- CREDITS -->
+      <div class="credits-section">
+        <p class="credits-label">Artikel ini ditulis sebagai bagian dari tugas mata kuliah <strong>Pemrograman Perangkat Bergerak</strong>, Departemen Teknologi Kedokteran, Fakultas Kedokteran dan Kesehatan, Institut Teknologi Sepuluh Nopember (ITS) Surabaya, 2026.</p>
+
+        <div class="team-section">
+          <h4>Tim Pengembang</h4>
+          <div class="team-grid">
+            <div class="team-member">
+              <div class="member-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2)">SA</div>
+              <span>Salsabila Afrinayyara</span>
+            </div>
+            <div class="team-member">
+              <div class="member-avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c)">ZR</div>
+              <span>Ziyadatur Rifah</span>
+            </div>
+            <div class="team-member">
+              <div class="member-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe)">GR</div>
+              <span>Ghaly Rakha Okusara</span>
+            </div>
+            <div class="team-member">
+              <div class="member-avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7)">WS</div>
+              <span>Wuli Silan Midzkar</span>
+            </div>
+            <div class="team-member">
+              <div class="member-avatar" style="background: linear-gradient(135deg, #fa709a, #fee140)">AD</div>
+              <span>Arya Muhammad Duta Syafinda</span>
+            </div>
+          </div>
+          <p class="dosen-info">Dosen Pengampu: <strong>Alfandino Rasyid, S.Tr.T., M.Tr.T</strong></p>
+        </div>
+      </div>
+
+      <!-- TAGS -->
+      <div class="tags-section">
+        <a href="#" class="tag">Flutter</a>
+        <a href="#" class="tag">Mobile Development</a>
+        <a href="#" class="tag">Startup</a>
+        <a href="#" class="tag">Mental Health</a>
+        <a href="#" class="tag">ITS Surabaya</a>
+        <a href="#" class="tag">Mahasiswa</a>
+        <a href="#" class="tag">Aplikasi</a>
+        <a href="#" class="tag">Indonesia</a>
+      </div>
+
+      <!-- BOTTOM ENGAGEMENT -->
+      <div class="bottom-engagement">
+        <div class="engagement-left">
+          <button class="clap-btn" id="clapBtnBottom" aria-label="Clap">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M11.37 8.31a.5.5 0 0 0 .9-.41l-1.67-4.2a.5.5 0 1 0-.93.37l1.7 4.24zm6.28 6.9L14.18 9.1a.76.76 0 0 0-1.36.71l2.09 3.89-1.2-.53a.55.55 0 0 0-.72.28l-.01.02-2.38-4.38a.76.76 0 1 0-1.34.72l2.1 3.89-1.22-.54a.55.55 0 0 0-.72.28v.01l-2.08-3.84a.76.76 0 0 0-1.02-.33.75.75 0 0 0-.32 1.02l2.1 3.86-1.22-.53a.55.55 0 0 0-.72.28v.01l-1.63-3a.76.76 0 0 0-1.34.72l3.68 6.86c.57 1.09 1.25 1.42 2.46 1.42h4.2c2.6 0 3.83-1.84 3.83-4.6 0-.77-.18-1.54-.41-2.31z" fill="currentColor"/></svg>
+            <span class="clap-count" id="clapCountBottom">247</span>
+          </button>
+          <button class="comment-btn" aria-label="Comments">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M18 16.8a7.14 7.14 0 0 0 2.24-5.32C20.24 7.16 16.57 4 12 4s-8.24 3.16-8.24 7.48c0 4.32 3.67 7.48 8.24 7.48.71 0 1.4-.08 2.07-.24a.6.6 0 0 1 .33 0l3.15.85a.42.42 0 0 0 .54-.54l-.84-3.15a.6.6 0 0 1 0-.33z" fill="currentColor"/></svg>
+            <span>18</span>
+          </button>
+        </div>
+        <div class="engagement-right">
+          <button class="action-btn bookmark-btn" aria-label="Save">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M17.5 1.25a.5.5 0 0 1 1 0v2.5H21a.5.5 0 0 1 0 1h-2.5v2.5a.5.5 0 0 1-1 0v-2.5H15a.5.5 0 0 1 0-1h2.5v-2.5zm-11 4.5a1 1 0 0 1 1-1H11a.5.5 0 0 0 0-1H7.5a2 2 0 0 0-2 2v14a.5.5 0 0 0 .8.4l5.7-4.4 5.7 4.4a.5.5 0 0 0 .8-.4v-8.5a.5.5 0 0 0-1 0v7.48l-5.2-4a.5.5 0 0 0-.6 0l-5.2 4V5.75z" fill="currentColor"/></svg>
+          </button>
+          <button class="action-btn share-btn" aria-label="Share">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M15.22 4.93a.42.42 0 0 1-.12.13h.01a.45.45 0 0 1-.29.08.52.52 0 0 1-.3-.13L12.5 3v7.07a.5.5 0 0 1-.5.5.5.5 0 0 1-.5-.5V3.02l-2 1.98a.45.45 0 0 1-.57.04h-.02a.4.4 0 0 1-.16-.3.42.42 0 0 1 .12-.33L11.6 1.7a.5.5 0 0 1 .7 0l2.83 2.83a.42.42 0 0 1 .09.4zm-3.18 9.71a.5.5 0 0 0 .5-.5V6.66l3.55-.03c.67 0 1.41.59 1.41 1.32v11.6c0 .73-.74 1.33-1.41 1.33H7.96c-.67 0-1.41-.6-1.41-1.33V7.95c0-.73.74-1.32 1.41-1.32l3.58.03v7.48c0 .28.22.5.5.5z" fill="currentColor"/></svg>
+          </button>
+          <button class="action-btn more-btn" aria-label="More">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M7 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm7 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- AUTHOR CARD BOTTOM -->
+      <div class="author-card-bottom">
+        <div class="author-avatar-large">
+          <span>GR</span>
+        </div>
+        <div class="author-card-info">
+          <div class="author-card-row">
+            <span class="author-card-label">Written by</span>
+            <button class="follow-btn-green" id="followBtnBottom">Follow</button>
+          </div>
+          <h3>Ghaly Rakha Okusara</h3>
+          <p>Mahasiswa Teknologi Kedokteran ITS '24 · Mobile Developer · Antusias dalam membangun solusi digital untuk permasalahan sosial di lingkungan kampus</p>
+        </div>
+      </div>
+
+    </footer>
+
+  </article>
+
+  <!-- MEDIUM FOOTER -->
+  <div class="medium-footer">
+    <div class="footer-inner">
+      <a href="#" class="footer-link">Help</a>
+      <a href="#" class="footer-link">Status</a>
+      <a href="#" class="footer-link">About</a>
+      <a href="#" class="footer-link">Careers</a>
+      <a href="#" class="footer-link">Press</a>
+      <a href="#" class="footer-link">Blog</a>
+      <a href="#" class="footer-link">Privacy</a>
+      <a href="#" class="footer-link">Terms</a>
+      <a href="#" class="footer-link">Text to speech</a>
+      <a href="#" class="footer-link">Teams</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
