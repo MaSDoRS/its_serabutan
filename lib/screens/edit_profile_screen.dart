@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+final _supabase = Supabase.instance.client;
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -8,25 +11,95 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _namaController = TextEditingController(text: 'Dafa Jaemin');
-  final _emailController =
-      TextEditingController(text: 'zyadaturrfaa24@gmail.com');
-  final _whatsappController = TextEditingController(text: '085607910342');
-  final _institutController =
-      TextEditingController(text: 'Institut Teknologi Sepuluh Nopember');
-  final _jurusanController =
-      TextEditingController(text: 'Teknologi Kedokteran');
-  final _angkatanController = TextEditingController(text: '2024');
-  final _nrpController = TextEditingController(text: '5049241013');
+  final _namaController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _nrpController = TextEditingController();
+
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String _initial = 'U';
+  String _email = '';
+  String? _identityType;
+  bool _isVerified = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final email = _supabase.auth.currentUser?.email;
+      if (email == null) return;
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('email', email)
+          .single();
+      if (mounted) {
+        final nama = (data['name'] ?? '') as String;
+        setState(() {
+          _email = email;
+          _namaController.text = nama;
+          _whatsappController.text = (data['phone'] ?? '') as String;
+          _nrpController.text = (data['identity_number'] ?? '') as String;
+          _initial = nama.isNotEmpty ? nama[0].toUpperCase() : 'U';
+          _identityType = data['identity_type'] as String?;
+          _isVerified = data['identity_photo_url'] != null;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _simpan() async {
+    final nama = _namaController.text.trim();
+    final phone = _whatsappController.text.trim();
+    final nrp = _nrpController.text.trim();
+
+    if (nama.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama tidak boleh kosong')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final uid = _supabase.auth.currentUser!.id;
+      // Cover customer (auth_uid) dan mitra (id)
+      await _supabase.from('users').update({
+        'name': nama,
+        'phone': phone,
+        'identity_number': nrp,
+      }).or('auth_uid.eq.$uid,id.eq.$uid');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profil berhasil diperbarui'),
+            backgroundColor: Color(0xFF43A047),
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan: $e')),
+        );
+        setState(() => _isSaving = false);
+      }
+    }
+  }
 
   @override
   void dispose() {
     _namaController.dispose();
-    _emailController.dispose();
     _whatsappController.dispose();
-    _institutController.dispose();
-    _jurusanController.dispose();
-    _angkatanController.dispose();
     _nrpController.dispose();
     super.dispose();
   }
@@ -35,103 +108,93 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.black87,
-          ),
-        ),
-        centerTitle: true,
+      body: Column(
+        children: [
+          _buildAppBar(context),
+          if (_isLoading)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
+                    _buildAvatar(),
+                    const SizedBox(height: 28),
+                    _buildSectionHeader('DATA DIRI'),
+                    const SizedBox(height: 20),
+                    _buildLabel('NAMA LENGKAP'),
+                    const SizedBox(height: 8),
+                    _buildTextField(controller: _namaController),
+                    const SizedBox(height: 18),
+                    _buildLabel('EMAIL'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: TextEditingController(text: _email),
+                      enabled: false,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildLabel('NOMOR WHATSAPP'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _whatsappController,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildLabel('NRP / NIM'),
+                    const SizedBox(height: 8),
+                    _buildTextField(controller: _nrpController),
+                    const SizedBox(height: 28),
+                    if (_isVerified) _buildVerifikasiIdentitas(),
+                    const SizedBox(height: 28),
+                    _buildSaveButton(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
-      body: SingleChildScrollView(
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
             children: [
-              const SizedBox(height: 16),
-              // Avatar
-              _buildAvatar(),
-              const SizedBox(height: 28),
-              // Section header DATA DIRI
-              _buildSectionHeader('DATA DIRI'),
-              const SizedBox(height: 20),
-              // Form fields
-              _buildLabel('NAMA LENGKAP'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _namaController),
-              const SizedBox(height: 18),
-              _buildLabel('EMAIL'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
               ),
-              const SizedBox(height: 18),
-              _buildLabel('NOMOR WHATSAPP'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _whatsappController,
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 18),
-              _buildLabel('INSTITUT / UNIVERSITAS'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _institutController),
-              const SizedBox(height: 18),
-              _buildLabel('JURUSAN / DEPARTEMEN'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _jurusanController),
-              const SizedBox(height: 18),
-              // Angkatan & NRP/NIM row
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('ANGKATAN'),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _angkatanController,
-                          keyboardType: TextInputType.number,
-                        ),
-                      ],
-                    ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Edit Profil',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('NRP / NIM'),
-                        const SizedBox(height: 8),
-                        _buildTextField(controller: _nrpController),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-              const SizedBox(height: 28),
-              // Verifikasi Identitas
-              _buildVerifikasiIdentitas(),
-              const SizedBox(height: 32),
-              // Tombol Simpan
-              _buildSaveButton(),
-              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -143,35 +206,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Column(
       children: [
         Container(
-          width: 100,
-          height: 100,
+          width: 88,
+          height: 88,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFFFD54F),
-              width: 3,
-            ),
             color: const Color(0xFF0288D1),
+            border: Border.all(color: const Color(0xFFFFD54F), width: 3),
           ),
-          child: const Center(
+          child: Center(
             child: Text(
-              'D',
-              style: TextStyle(
-                fontSize: 44,
-                fontWeight: FontWeight.w700,
+              _initial,
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
-          'Ganti Foto Profil',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.blue.shade600,
-          ),
+          _email,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),
       ],
     );
@@ -190,12 +246,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Expanded(
-          child: Container(
-            height: 1,
-            color: Colors.grey.shade300,
-          ),
-        ),
+        Expanded(child: Container(height: 1, color: Colors.grey.shade300)),
       ],
     );
   }
@@ -215,18 +266,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildTextField({
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
+    bool enabled = true,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(fontSize: 14),
+      enabled: enabled,
+      style: TextStyle(fontSize: 14, color: enabled ? Colors.black87 : Colors.grey.shade500),
       decoration: InputDecoration(
         filled: true,
-        fillColor: const Color(0xFFE3F2FD),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        fillColor: enabled ? const Color(0xFFE3F2FD) : Colors.grey.shade100,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -235,18 +285,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF42A5F5),
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
         ),
       ),
     );
   }
 
   Widget _buildVerifikasiIdentitas() {
+    final label = _identityType == 'ktm' ? 'KTM Terverifikasi' : 'KTP Terverifikasi';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -268,7 +320,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          // KTM Terverifikasi card
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -277,7 +328,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             child: Row(
               children: [
-                // KTM icon
                 Container(
                   width: 44,
                   height: 44,
@@ -285,43 +335,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: const Color(0xFF1565C0),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
-                    Icons.credit_card,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                  child: const Icon(Icons.credit_card, color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'KTM Terverifikasi',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Institut Teknologi Sepuluh\nNopember',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-                // Valid badge
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8F5E9),
                     borderRadius: BorderRadius.circular(8),
@@ -329,34 +357,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: Color(0xFF4CAF50),
-                        size: 14,
-                      ),
+                      Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 14),
                       SizedBox(width: 4),
-                      Text(
-                        'Valid',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4CAF50),
-                        ),
-                      ),
+                      Text('Valid',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF4CAF50))),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
-            'KTM tidak dapat diubah setelah diverifikasi',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade500,
-              fontStyle: FontStyle.italic,
-            ),
+            'Identitas tidak dapat diubah setelah diverifikasi',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontStyle: FontStyle.italic),
           ),
         ],
       ),
@@ -365,77 +382,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: () {
-        // TODO: Implementasi simpan perubahan
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil berhasil diperbarui'),
-            backgroundColor: Color(0xFF4CAF50),
-          ),
-        );
-        Navigator.pop(context);
-      },
+      onPressed: _isSaving ? null : _simpan,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: const Color(0xFF0288D1),
         foregroundColor: Colors.white,
+        disabledBackgroundColor: Colors.grey.shade300,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        elevation: 2,
-      ),
-      child: const Text(
-        'SIMPAN PERUBAHAN',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: 2,
-        onTap: (index) {
-          if (index != 2) {
-            Navigator.pop(context);
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF29B6F6),
-        unselectedItemColor: Colors.grey.shade400,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
       ),
+      child: _isSaving
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            )
+          : const Text(
+              'Simpan Perubahan',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            ),
     );
   }
 }

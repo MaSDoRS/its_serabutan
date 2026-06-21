@@ -82,19 +82,22 @@ class _RegisterMitraKeahlianScreenState
 
   Future<void> _registerMitra() async {
     if (_isLoading) return;
+
     setState(() => _isLoading = true);
     try {
-      // 1. Sign Up ke Supabase Auth
+      // 1. Sign Up user in Supabase Auth
       final response = await supabase.auth.signUp(
         email: widget.email,
         password: widget.password,
-        data: {'full_name': widget.nama},
+        data: {
+          'full_name': widget.nama,
+        },
       );
 
       final authUser = response.user;
       if (authUser == null) throw Exception('Gagal melakukan pendaftaran akun');
 
-      // 2. Insert ke tabel users dengan id = UUID dari Auth
+      // 2. Insert into users table
       await supabase.from('users').insert({
         'id': authUser.id,
         'name': widget.nama,
@@ -105,7 +108,7 @@ class _RegisterMitraKeahlianScreenState
         'role': 'provider',
       });
 
-      // 3. Upload foto KTM
+      // 3. Upload KTM image to Storage
       final fileName = 'ktm_mitra_${authUser.id}.jpg';
       await supabase.storage
           .from('identity_photos')
@@ -118,11 +121,12 @@ class _RegisterMitraKeahlianScreenState
           .from('identity_photos')
           .getPublicUrl(fileName);
 
+      // Update user with identity photo url
       await supabase.from('users').update({
         'identity_photo_url': ktmUrl,
       }).eq('id', authUser.id);
 
-      // 4. Insert ke tabel providers
+      // 4. Insert into providers table
       await supabase.from('providers').insert({
         'user_id': authUser.id,
         'status': 'active',
@@ -217,6 +221,7 @@ class _RegisterMitraKeahlianScreenState
               ),
             ),
           ),
+          // Tombol Daftar (sticky bottom)
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             child: SizedBox(

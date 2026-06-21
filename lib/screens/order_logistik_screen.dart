@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'pilih_penyedia_jasa_screen.dart';
+import 'map_picker_screen.dart';
+import '../models/order_data.dart';
+import '../widgets/mini_route_map_widget.dart';
 
 class OrderLogistikScreen extends StatefulWidget {
   const OrderLogistikScreen({super.key});
@@ -10,143 +14,76 @@ class OrderLogistikScreen extends StatefulWidget {
 
 class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
   final _deskripsiController = TextEditingController();
-  final _namaPenerimaController = TextEditingController();
-  final _hpPenerimaController = TextEditingController();
   final _titikJemputController = TextEditingController();
-  final _titikAntarController = TextEditingController();
-  int _beratBarang = 0;
+  final _tujuanController = TextEditingController();
+  LatLng? _titikJemputLatLng;
+  LatLng? _tujuanLatLng;
+
+  double _beratBarang = 0;
   int _jumlahBarang = 0;
 
   @override
   void dispose() {
     _deskripsiController.dispose();
-    _namaPenerimaController.dispose();
-    _hpPenerimaController.dispose();
     _titikJemputController.dispose();
-    _titikAntarController.dispose();
+    _tujuanController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          ClipPath(
-            clipper: _HeaderClipper(),
-            child: Container(
-              width: double.infinity,
-              height: 120,
-              decoration: const BoxDecoration(color: Color(0xFF1565C0)),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'LOGISTIK',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildAppBar(context),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Deskripsi Barang
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                  // ── DESKRIPSI BARANG ──
+                  _buildCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildPillLabel('Deskripsi Barang'),
-                        const SizedBox(height: 8),
+                        _buildSectionHeader('Deskripsi Barang'),
+                        const SizedBox(height: 14),
                         TextField(
                           controller: _deskripsiController,
-                          maxLines: 3,
-                          style: const TextStyle(fontSize: 13),
-                          decoration: const InputDecoration(
-                            hintText: 'Masukkan deskripsi barang yang dikirim...',
-                            hintStyle: TextStyle(fontSize: 13, color: Colors.black45),
-                            border: InputBorder.none,
+                          maxLines: 5,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Titik Jemput
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildPillLabel('Titik Jemput Barang'),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _titikJemputController,
-                          style: const TextStyle(fontSize: 13),
                           decoration: InputDecoration(
-                            hintText: 'Masukkan alamat titik jemput...',
-                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                            hintText: 'Masukkan deskripsi tenaga atau logistik',
+                            hintStyle: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w400,
+                            ),
                             filled: true,
-                            fillColor: const Color(0xFFE3F2FD),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            prefixIcon: const Icon(Icons.circle, size: 14, color: Color(0xFFFFD54F)),
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue.shade100),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue.shade100),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF42A5F5),
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -155,200 +92,160 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Titik Antar
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildPillLabel('Titik Antar Barang'),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _titikAntarController,
-                          style: const TextStyle(fontSize: 13),
-                          decoration: InputDecoration(
-                            hintText: 'Masukkan alamat tujuan pengiriman...',
-                            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                            filled: true,
-                            fillColor: const Color(0xFFE3F2FD),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            prefixIcon: const Icon(Icons.location_on, size: 14, color: Color(0xFFE53935)),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nama & HP Penerima
+                  // ── BERAT & JUMLAH BARANG ──
                   Row(
                     children: [
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildPillLabel('Nama Penerima'),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: _namaPenerimaController,
-                                style: const TextStyle(fontSize: 12),
-                                decoration: const InputDecoration(
-                                  hintText: 'Nama penerima...',
-                                  hintStyle: TextStyle(fontSize: 11, color: Colors.black38),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildPillLabel('No. HP Penerima'),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: _hpPenerimaController,
-                                keyboardType: TextInputType.phone,
-                                style: const TextStyle(fontSize: 12),
-                                decoration: const InputDecoration(
-                                  hintText: 'No. HP...',
-                                  hintStyle: TextStyle(fontSize: 11, color: Colors.black38),
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Berat & Jumlah
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCounterCard(
+                        child: _buildStepperCard(
                           label: 'Berat Barang (KG)',
-                          value: _beratBarang,
-                          onIncrement: () => setState(() => _beratBarang++),
+                          value: _beratBarang.toStringAsFixed(
+                              _beratBarang.truncateToDouble() == _beratBarang ? 0 : 1),
+                          hint: 'Masukkan Berat',
+                          onIncrement: () => setState(() => _beratBarang += 1),
                           onDecrement: () {
-                            if (_beratBarang > 0) setState(() => _beratBarang--);
+                            if (_beratBarang > 0) setState(() => _beratBarang -= 1);
                           },
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildCounterCard(
+                        child: _buildStepperCard(
                           label: 'Jumlah Barang',
-                          value: _jumlahBarang,
-                          onIncrement: () => setState(() => _jumlahBarang++),
+                          value: _jumlahBarang.toString(),
+                          hint: 'Masukkan Jumlah',
+                          onIncrement: () => setState(() => _jumlahBarang += 1),
                           onDecrement: () {
-                            if (_jumlahBarang > 0) setState(() => _jumlahBarang--);
+                            if (_jumlahBarang > 0) setState(() => _jumlahBarang -= 1);
                           },
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
 
-                  SafeArea(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_titikJemputController.text.trim().isEmpty ||
-                              _titikAntarController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Titik jemput dan titik antar harus diisi')),
-                            );
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const PilihPenyediaJasaScreen()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFBE122),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                  // ── TITIK JEMPUT & TUJUAN ──
+                  _buildCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('TITIK JEMPUT & TUJUAN'),
+                        const SizedBox(height: 20),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'CARI PENYEDIA JASA LOGISTIK',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                            // Dot connector
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFD54F),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFFFD54F).withValues(alpha: 0.4),
+                                          blurRadius: 6,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 2,
+                                    height: 36,
+                                    margin: const EdgeInsets.symmetric(vertical: 2),
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1565C0),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF1565C0).withValues(alpha: 0.4),
+                                          blurRadius: 6,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, size: 20),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  _buildLocationField(
+                                    controller: _titikJemputController,
+                                    hintText: 'Pilih lokasi jemput',
+                                    onPicker: _pickJemput,
+                                    fillColor: const Color(0xFFE3F2FD),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _buildLocationField(
+                                    controller: _tujuanController,
+                                    hintText: 'Pilih lokasi tujuan',
+                                    onPicker: _pickTujuan,
+                                    fillColor: Colors.grey.shade50,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      ),
+                        if (_titikJemputLatLng != null) ...[
+                          const SizedBox(height: 16),
+                          MiniRouteMapWidget(
+                            pointA: _titikJemputLatLng,
+                            pointB: _tujuanLatLng,
+                            labelA: 'Jemput',
+                            labelB: 'Tujuan',
+                            onEditA: _pickJemput,
+                            onEditB: _pickTujuan,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                 ],
+              ),
+            ),
+          ),
+
+          // ── Sticky CARI PENYEDIA JASA button ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onCariMitra,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD54F),
+                    foregroundColor: Colors.black87,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 2,
+                    shadowColor: const Color(0xFFFFD54F).withValues(alpha: 0.4),
+                  ),
+                  child: const Text(
+                    'CARI PENYEDIA JASA',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -357,82 +254,175 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
     );
   }
 
-  Widget _buildPillLabel(String text) {
+  Widget _buildAppBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1565C0),
-        borderRadius: BorderRadius.circular(20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Tenaga & Logistik',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.inventory_2,
+                  color: Color(0xFFFF8F00),
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildCounterCard({
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade50, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1565C0),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Container(height: 1.5, color: Colors.blue.shade100)),
+      ],
+    );
+  }
+
+  Widget _buildStepperCard({
     required String label,
-    required int value,
+    required String value,
+    required String hint,
     required VoidCallback onIncrement,
     required VoidCallback onDecrement,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade50, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          _buildPillLabel(label),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  value.toString(),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: value > 0 ? const Color(0xFF1565C0) : Colors.black38,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE3F2FD),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1565C0),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  value == '0' ? hint : value,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: value == '0' ? FontWeight.w400 : FontWeight.w600,
+                    color: value == '0' ? Colors.grey.shade400 : Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStepperArrow(
+                icon: Icons.keyboard_arrow_up,
+                onTap: onIncrement,
+                color: const Color(0xFF66BB6A),
               ),
-              Column(
-                children: [
-                  GestureDetector(
-                    onTap: onIncrement,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFFBE122)),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(Icons.keyboard_arrow_up, size: 14, color: Color(0xFFFBE122)),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  GestureDetector(
-                    onTap: onDecrement,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFFBE122)),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(Icons.keyboard_arrow_down, size: 14, color: Color(0xFFFBE122)),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 2),
+              _buildStepperArrow(
+                icon: Icons.keyboard_arrow_down,
+                onTap: onDecrement,
+                color: const Color(0xFF66BB6A),
               ),
             ],
           ),
@@ -440,19 +430,103 @@ class _OrderLogistikScreenState extends State<OrderLogistikScreen> {
       ),
     );
   }
-}
 
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(size.width / 2, size.height + 10, size.width, size.height - 30);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
+  Widget _buildStepperArrow({
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(icon, size: 20, color: color),
+      ),
+    );
   }
 
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  Future<void> _pickJemput() async {
+    final r = await Navigator.push<MapPickerResult>(context,
+      MaterialPageRoute(builder: (_) => const MapPickerScreen(title: 'Titik Jemput Barang')));
+    if (r != null) setState(() { _titikJemputController.text = r.address; _titikJemputLatLng = r.latLng; });
+  }
+
+  Future<void> _pickTujuan() async {
+    final r = await Navigator.push<MapPickerResult>(context,
+      MaterialPageRoute(builder: (_) => const MapPickerScreen(title: 'Tujuan Pengiriman')));
+    if (r != null) setState(() { _tujuanController.text = r.address; _tujuanLatLng = r.latLng; });
+  }
+
+  Widget _buildLocationField({
+    required TextEditingController controller,
+    required String hintText,
+    required Color fillColor,
+    required VoidCallback onPicker,
+  }) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+        filled: true,
+        fillColor: fillColor,
+        contentPadding: const EdgeInsets.only(left: 16, right: 4, top: 14, bottom: 14),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.map_outlined, size: 20, color: Color(0xFF0288D1)),
+          tooltip: 'Pilih di peta',
+          onPressed: onPicker,
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.blue.shade100)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.blue.shade100)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5)),
+      ),
+    );
+  }
+
+  void _onCariMitra() {
+    if (_deskripsiController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Deskripsi barang harus diisi'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: const Color(0xFF0288D1),
+        ),
+      );
+      return;
+    }
+    if (_titikJemputController.text.trim().isEmpty ||
+        _tujuanController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Titik jemput dan tujuan harus diisi'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: const Color(0xFF0288D1),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PilihPenyediaJasaScreen(
+          orderData: OrderData(
+            jenisLayanan: 'Logistik',
+            deskripsi: _deskripsiController.text.trim(),
+            titikJemput: _titikJemputController.text.trim(),
+            tujuan: _tujuanController.text.trim(),
+            berat: _beratBarang.toStringAsFixed(0),
+            jumlahBarang: _jumlahBarang,
+          ),
+        ),
+      ),
+    );
+  }
 }

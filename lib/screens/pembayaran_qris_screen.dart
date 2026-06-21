@@ -1,15 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'pembayaran_berhasil_screen.dart';
 
 class PembayaranQrisScreen extends StatefulWidget {
-  const PembayaranQrisScreen({super.key});
+  final String totalHarga;
+  final String jenisLayanan;
+
+  const PembayaranQrisScreen({
+    super.key,
+    this.totalHarga = '00.000',
+    this.jenisLayanan = '',
+  });
 
   @override
   State<PembayaranQrisScreen> createState() => _PembayaranQrisScreenState();
 }
 
 class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
-  // Countdown timer (15 menit)
   int _remainingSeconds = 15 * 60;
   Timer? _timer;
 
@@ -22,9 +29,7 @@ class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
-        setState(() {
-          _remainingSeconds--;
-        });
+        setState(() => _remainingSeconds--);
       } else {
         timer.cancel();
       }
@@ -44,184 +49,215 @@ class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF4FC3F7),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Pembayaran',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        centerTitle: false,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              // Countdown + order info
-              _buildOrderInfo(),
-              const SizedBox(height: 28),
-              // QRIS title
-              const Text(
-                'QRIS',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 14),
-              // NMID badge
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFD54F),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Column(
-                    children: [
-                      Text(
-                        'ITS SERABUTAN',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1565C0),
-                        ),
+      body: Column(
+        children: [
+          _buildAppBar(context),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+
+                  // Countdown timer
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
                       ),
-                      SizedBox(height: 2),
-                      Text(
-                        'NMID : ID10893888838',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1565C0),
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Selesaikan dalam ',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                          _buildTimerBox(_minutes[0]),
+                          _buildTimerBox(_minutes[1]),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 2),
+                            child: Text(':', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                          ),
+                          _buildTimerBox(_seconds[0]),
+                          _buildTimerBox(_seconds[1]),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // QR Code placeholder
-              Center(
-                child: Container(
-                  width: 220,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.qr_code_2,
-                      size: 180,
-                      color: const Color(0xFF1565C0).withValues(alpha: 0.8),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // QRIS title
+                  const Text(
+                    'QRIS',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Merchant badge
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD54F),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Column(
+                        children: [
+                          Text(
+                            'ITS SERABUTAN',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0288D1),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'NMID : ID10893888838',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0288D1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // QR code
+                  Center(
+                    child: Container(
+                      width: 220,
+                      height: 220,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.qr_code_2, size: 200, color: Color(0xFF0288D1)),
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // Total bar
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0288D1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('QRIS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+                            SizedBox(height: 2),
+                            Text('TOTAL', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70)),
+                          ],
+                        ),
+                        Text(
+                          'Rp ${widget.totalHarga}',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Konfirmasi sudah bayar
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PembayaranBerhasilScreen(
+                            metode: 'QRIS',
+                            total: widget.totalHarga,
+                            jenisLayanan: widget.jenisLayanan,
+                          ),
+                        ),
+                        (route) => route.isFirst,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD54F),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Saya Sudah Bayar',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 28),
-              // Payment summary
-              _buildPaymentSummary(),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildOrderInfo() {
+  Widget _buildAppBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Finish Before + Countdown
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD54F).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'Finish Before',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFE65100),
-                  ),
-                ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
               ),
-              // Timer boxes
-              Row(
-                children: [
-                  _buildTimerBox(_minutes[0]),
-                  _buildTimerBox(_minutes[1]),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 2),
-                    child: Text(
-                      ':',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1565C0),
-                      ),
-                    ),
-                  ),
-                  _buildTimerBox(_seconds[0]),
-                  _buildTimerBox(_seconds[1]),
-                ],
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Pembayaran QRIS',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Date
-          const Text(
-            '23 Mei 2026, 09:00 WIB',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          // Description
-          Text(
-            '"Mas,temenin saya antri dan war dubai chewy cookie di TP"',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              height: 1.4,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -236,116 +272,7 @@ class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
-        child: Text(
-          digit,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentSummary() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          // QRIS label + total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'QRIS',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'TOTAL',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-              const Text(
-                'Rp.50.000',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1565C0),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Share & Download buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Share QRIS')),
-                    );
-                  },
-                  icon: const Icon(Icons.share, size: 18),
-                  label: const Text(
-                    'Share',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF29B6F6),
-                    side: const BorderSide(color: Color(0xFF29B6F6)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Download QRIS')),
-                    );
-                  },
-                  icon: const Icon(Icons.download, size: 18),
-                  label: const Text(
-                    'Download',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF29B6F6),
-                    side: const BorderSide(color: Color(0xFF29B6F6)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        child: Text(digit, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
       ),
     );
   }

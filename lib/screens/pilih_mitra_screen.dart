@@ -1,112 +1,60 @@
 import 'package:flutter/material.dart';
-import 'mencari_mitra_screen.dart';
+import 'chat_detail_screen.dart';
+import '../models/order_data.dart';
 
 class PilihMitraScreen extends StatelessWidget {
-  const PilihMitraScreen({super.key});
+  final OrderData orderData;
+  const PilihMitraScreen({super.key, this.orderData = const OrderData()});
+
+  static const List<Map<String, dynamic>> _mitraList = [
+    {
+      'name': 'Ghaly Rakha',
+      'initial': 'G',
+      'services': ['Antar Jemput', 'Kebersihan', 'Perbaikan Ringan', 'Sosial & Lainnya'],
+    },
+    {
+      'name': 'Arya Duta',
+      'initial': 'A',
+      'services': ['Kebersihan', 'Perbaikan Ringan', 'Sosial & Lainnya'],
+    },
+    {
+      'name': 'Yazid Alfarizy',
+      'initial': 'Y',
+      'services': ['Antar Jemput', 'Kebersihan', 'Sosial & Lainnya'],
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final mitraList = [
-      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
-      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
-      {'nama': 'Arya Duta', 'harga': 'Rp 35.000'},
-    ];
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF29B6F6),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'PILIH MITRA',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 16,
-              child: Icon(
-                Icons.cleaning_services,
-                size: 18,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ),
-        ],
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(24),
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(20),
-          child: Container(), // For padding bottom of appbar
-        ),
-      ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          const SizedBox(height: 16),
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari Mitra...',
-                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF29B6F6)),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Mitra Tersedia text
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '3 Mitra Tersedia',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.blue.shade400,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // List Mitra
+          _buildAppBar(context),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              itemCount: mitraList.length,
-              itemBuilder: (context, index) {
-                final mitra = mitraList[index];
-                return _buildMitraCard(
-                  context: context,
-                  nama: mitra['nama']!,
-                  harga: mitra['harga']!,
-                );
-              },
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    '${_mitraList.length} Mitra Sedang Aktif',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF29B6F6),
+                    ),
+                  ),
+                ),
+                ..._mitraList.map(
+                  (mitra) => _buildMitraCard(
+                    context,
+                    name: mitra['name'] as String,
+                    initial: mitra['initial'] as String,
+                    services: List<String>.from(mitra['services'] as List),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -114,30 +62,74 @@ class PilihMitraScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMitraCard({
-    required BuildContext context,
-    required String nama,
-    required String harga,
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Mitra Tersedia',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMitraCard(
+    BuildContext context, {
+    required String name,
+    required String initial,
+    required List<String> services,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade50, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Yellow indicator strip
           Container(
             width: 6,
-            height: 110,
+            height: 160,
             decoration: const BoxDecoration(
               color: Color(0xFFFFD54F),
               borderRadius: BorderRadius.only(
@@ -148,14 +140,12 @@ class PilihMitraScreen extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(14, 18, 18, 18),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Row 1: Avatar, Info, Harga
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Avatar
                       Container(
                         width: 44,
                         height: 44,
@@ -165,93 +155,87 @@ class PilihMitraScreen extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            nama[0],
+                            initial,
                             style: const TextStyle(
-                              color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Info
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              nama,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Aktif',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Harga
-                      Text(
-                        harga,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1565C0),
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: services.map((s) => _buildServiceTag(s)).toList(),
+                  ),
                   const SizedBox(height: 14),
-                  // Row 2: Actions
-                  Row(
-                    children: [
-                      const Spacer(),
-                      // Chat button
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MencariMitraScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1565C0),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          minimumSize: Size.zero,
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Chat',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatDetailScreen(
+                            mitraName: name,
+                            mitraInitial: initial,
+                            orderData: orderData,
                           ),
                         ),
                       ),
-                    ],
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1565C0),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Chat',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServiceTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF29B6F6), width: 1),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF0288D1),
+        ),
       ),
     );
   }

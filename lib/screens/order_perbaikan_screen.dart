@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import 'dart:io';
 import 'pilih_mitra_screen.dart';
+import 'map_picker_screen.dart';
+import '../models/order_data.dart';
+import '../widgets/mini_route_map_widget.dart';
 
 class OrderPerbaikanScreen extends StatefulWidget {
   const OrderPerbaikanScreen({super.key});
@@ -11,16 +15,16 @@ class OrderPerbaikanScreen extends StatefulWidget {
 }
 
 class _OrderPerbaikanScreenState extends State<OrderPerbaikanScreen> {
-  final _kerusakanController = TextEditingController();
-  final _alamatController = TextEditingController();
-  final _hargaController = TextEditingController(text: '35.000');
+  int _jumlahMitra = 1;
   final List<File> _fotoKerusakan = [];
+  final _deskripsiController = TextEditingController();
+  final _alamatController = TextEditingController();
+  LatLng? _alamatLatLng;
 
   @override
   void dispose() {
-    _kerusakanController.dispose();
+    _deskripsiController.dispose();
     _alamatController.dispose();
-    _hargaController.dispose();
     super.dispose();
   }
 
@@ -35,325 +39,359 @@ class _OrderPerbaikanScreenState extends State<OrderPerbaikanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          ClipPath(
-            clipper: _HeaderClipper(),
-            child: Container(
-              width: double.infinity,
-              height: 120,
-              decoration: const BoxDecoration(color: Color(0xFF1565C0)),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'PERBAIKAN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
+          _buildAppBar(context),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── DESKRIPSI KERUSAKAN ──
+                  _buildCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('DESKRIPSI KERUSAKAN'),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: _deskripsiController,
+                          maxLines: 5,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan detail kerusakan...',
+                            hintStyle: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue.shade100),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue.shade100),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── UNGGAH FOTO KERUSAKAN ──
+                  _buildCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('UNGGAH FOTO KERUSAKAN'),
+                        const SizedBox(height: 14),
+                        _buildUploadArea(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── LOKASI ──
+                  _buildCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('LOKASI'),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'ALAMAT LENGKAP',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildAlamatField(),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'JUMLAH MITRA YANG DIBUTUHKAN',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildMitraCounter(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Sticky CARI MITRA button ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onCariMitra,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD54F),
+                    foregroundColor: Colors.black87,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 2,
+                    shadowColor: const Color(0xFFFFD54F).withValues(alpha: 0.4),
+                  ),
+                  child: const Text(
+                    'CARI MITRA PERBAIKAN',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Perbaikan Ringan',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.build, color: Color(0xFF0288D1), size: 22),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade50, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1565C0),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Container(height: 1.5, color: Colors.blue.shade100)),
+      ],
+    );
+  }
+
+  Widget _buildUploadArea() {
+    if (_fotoKerusakan.isEmpty) {
+      return GestureDetector(
+        onTap: _pickImage,
+        child: Container(
+          width: double.infinity,
+          height: 160,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue.shade200, width: 1.5),
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.cloud_upload_outlined, size: 52, color: Colors.black87),
+              SizedBox(height: 12),
+              Text(
+                'Upload Foto',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1565C0),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: _fotoKerusakan.length,
+          itemBuilder: (context, i) => ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(_fotoKerusakan[i], fit: BoxFit.cover),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextButton.icon(
+          onPressed: _pickImage,
+          icon: const Icon(Icons.add_photo_alternate, size: 18),
+          label: const Text('Tambah Foto'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMitraCounter() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (_jumlahMitra > 1) setState(() => _jumlahMitra--);
+            },
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(9),
+                  bottomLeft: Radius.circular(9),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '–',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: _jumlahMitra > 1 ? Colors.black87 : Colors.grey.shade400,
                   ),
                 ),
               ),
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Jenis Kerusakan
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1565C0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Jenis Kerusakan',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _kerusakanController,
-                          maxLines: 3,
-                          style: const TextStyle(fontSize: 13),
-                          decoration: const InputDecoration(
-                            hintText: 'Isi kerusakan disini...',
-                            hintStyle: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black45,
-                            ),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Upload Foto — sekarang beneran bisa upload!
-                  const Text(
-                    'UNGGAH FOTO KERUSAKAN',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1565C0),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: double.infinity,
-                      height: _fotoKerusakan.isEmpty ? 160 : null,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey.shade300,
-                          width: 2,
-                        ),
-                      ),
-                      child: _fotoKerusakan.isEmpty
-                          ? const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.file_upload_outlined,
-                                  size: 48,
-                                  color: Colors.black54,
-                                ),
-                                SizedBox(height: 12),
-                                Text(
-                                  'Tap untuk upload foto kerusakan',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                children: [
-                                  // Grid foto
-                                  GridView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 3,
-                                          crossAxisSpacing: 8,
-                                          mainAxisSpacing: 8,
-                                        ),
-                                    itemCount: _fotoKerusakan.length,
-                                    itemBuilder: (context, i) => ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.file(
-                                        _fotoKerusakan[i],
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Tombol tambah foto lagi
-                                  TextButton.icon(
-                                    onPressed: _pickImage,
-                                    icon: const Icon(
-                                      Icons.add_photo_alternate,
-                                      size: 18,
-                                    ),
-                                    label: const Text('Tambah Foto'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Alamat Lengkap — sekarang bisa diisi!
-                  const Text(
-                    'ALAMAT LENGKAP',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1565C0),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _alamatController,
-                    style: const TextStyle(fontSize: 13),
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      hintText: 'Masukkan alamat lengkap...',
-                      hintStyle: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade400,
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFE3F2FD),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF42A5F5),
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Penawaran Harga
-                  const Row(
-                    children: [
-                      Text(
-                        'PENAWARAN HARGA',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1565C0),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'BUDGET KAMU',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPriceInput(),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Mitra bisa menerima atau menawar harga kamu',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey.shade500,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Button
-                  SafeArea(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_kerusakanController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Jenis kerusakan harus diisi'),
-                              ),
-                            );
-                            return;
-                          }
-                          if (_alamatController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Alamat harus diisi'),
-                              ),
-                            );
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PilihMitraScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFBE122),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'CARI MITRA PERBAIKAN',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+            child: Center(
+              child: Text(
+                '$_jumlahMitra Orang',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1565C0),
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _jumlahMitra++),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(9),
+                  bottomRight: Radius.circular(9),
+                ),
+              ),
+              child: const Center(
+                child: Text(
+                  '+',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87),
+                ),
               ),
             ),
           ),
@@ -362,70 +400,83 @@ class _OrderPerbaikanScreenState extends State<OrderPerbaikanScreen> {
     );
   }
 
-  Widget _buildPriceInput() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.blue.shade200),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(9),
-                bottomLeft: Radius.circular(9),
-              ),
+  Future<void> _openMapPicker() async {
+    final r = await Navigator.push<MapPickerResult>(context,
+      MaterialPageRoute(builder: (_) => const MapPickerScreen(title: 'Pilih Lokasi Perbaikan')));
+    if (r != null) setState(() { _alamatController.text = r.address; _alamatLatLng = r.latLng; });
+  }
+
+  Widget _buildAlamatField() {
+    return Column(
+      children: [
+        TextField(
+          controller: _alamatController,
+          maxLines: 3,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            hintText: 'Masukkan detail lengkap alamat lokasi',
+            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400, fontWeight: FontWeight.w400),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.only(left: 16, right: 4, top: 14, bottom: 14),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.map_outlined, size: 20, color: Color(0xFF0288D1)),
+              tooltip: 'Pilih di peta',
+              onPressed: _openMapPicker,
             ),
-            child: const Text(
-              'Rp',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.blue.shade100)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.blue.shade100)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 1.5)),
           ),
-          Expanded(
-            child: TextField(
-              controller: _hargaController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1565C0),
-              ),
-              decoration: const InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                border: InputBorder.none,
-              ),
-            ),
+        ),
+        if (_alamatLatLng != null) ...[
+          const SizedBox(height: 10),
+          MiniRouteMapWidget(
+            pointA: _alamatLatLng,
+            labelA: 'Lokasi',
+            onEditA: _openMapPicker,
+            height: 170,
           ),
         ],
+      ],
+    );
+  }
+
+  void _onCariMitra() {
+    if (_deskripsiController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Deskripsi kerusakan harus diisi'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: const Color(0xFF0288D1),
+        ),
+      );
+      return;
+    }
+    if (_alamatController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Alamat lengkap harus diisi'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: const Color(0xFF0288D1),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PilihMitraScreen(
+          orderData: OrderData(
+            jenisLayanan: 'Perbaikan',
+            deskripsi: _deskripsiController.text.trim(),
+            alamat: _alamatController.text.trim(),
+            jumlahMitra: _jumlahMitra,
+          ),
+        ),
       ),
     );
   }
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(
-      size.width / 2,
-      size.height + 10,
-      size.width,
-      size.height - 30,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
