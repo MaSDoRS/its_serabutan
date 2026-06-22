@@ -49,12 +49,14 @@ class _OrderSosialScreenState extends State<OrderSosialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -361,7 +363,8 @@ class _OrderSosialScreenState extends State<OrderSosialScreen> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

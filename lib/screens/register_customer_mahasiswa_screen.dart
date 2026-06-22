@@ -7,9 +7,6 @@ import 'register_customer_umum_screen.dart';
 
 final supabase = Supabase.instance.client;
 
-// Halaman Daftar Customer - tampilan sesuai mockup
-// Halaman 1: Data diri (Nama, Email, WA, Institut, Jurusan, Angkatan, NRP/NIM)
-// Halaman 2: Upload KTM, Password, Ulangi Password, tombol DAFTAR
 class RegisterCustomerMahasiswaScreen extends StatefulWidget {
   const RegisterCustomerMahasiswaScreen({super.key});
 
@@ -31,7 +28,7 @@ class _RegisterCustomerMahasiswaScreenState
   final _confirmPasswordController = TextEditingController();
   final _scrollController = ScrollController();
 
-  int _currentPage = 1; // 1 = data diri, 2 = verifikasi & password
+  int _currentPage = 1;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -53,11 +50,8 @@ class _RegisterCustomerMahasiswaScreenState
   }
 
   Future<void> _pickKtmImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() => _ktmImage = File(picked.path));
-    }
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) setState(() => _ktmImage = File(picked.path));
   }
 
   void _goToPage2() {
@@ -69,24 +63,16 @@ class _RegisterCustomerMahasiswaScreenState
     final angkatan = _angkatanController.text.trim();
     final nrp = _nrpController.text.trim();
 
-    if (nama.isEmpty ||
-        email.isEmpty ||
-        phone.isEmpty ||
-        institut.isEmpty ||
-        jurusan.isEmpty ||
-        angkatan.isEmpty ||
-        nrp.isEmpty) {
+    if (nama.isEmpty || email.isEmpty || phone.isEmpty ||
+        institut.isEmpty || jurusan.isEmpty || angkatan.isEmpty || nrp.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Semua field harus diisi')),
       );
       return;
     }
     setState(() => _currentPage = 2);
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    _scrollController.animateTo(0,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
   }
 
   Future<void> _daftar() async {
@@ -124,7 +110,7 @@ class _RegisterCustomerMahasiswaScreenState
       final email = _emailController.text.trim();
       final nama = _namaController.text.trim();
 
-      // Register ke Supabase Auth
+      // 1. Register ke Supabase Auth
       final authResponse = await supabase.auth.signUp(
         email: email,
         password: password,
@@ -132,14 +118,11 @@ class _RegisterCustomerMahasiswaScreenState
       );
 
       if (authResponse.user == null) throw Exception('Gagal membuat akun');
-
       final authUser = authResponse.user!;
 
-      // Upload foto KTM
+      // 2. Upload foto KTM
       final fileName = 'ktm_${authUser.id}.jpg';
-      await supabase.storage
-          .from('identity_photos')
-          .upload(
+      await supabase.storage.from('identity_photos').upload(
             fileName,
             _ktmImage!,
             fileOptions: const FileOptions(upsert: true),
@@ -147,17 +130,39 @@ class _RegisterCustomerMahasiswaScreenState
       final ktmUrl =
           supabase.storage.from('identity_photos').getPublicUrl(fileName);
 
-      // Insert ke tabel users
-      await supabase.from('users').upsert({
-        'auth_uid': authUser.id,
-        'name': nama,
-        'email': email,
-        'phone': _phoneController.text.trim(),
-        'identity_number': _nrpController.text.trim(),
-        'identity_type': 'ktm',
-        'identity_photo_url': ktmUrl,
-        'role': 'customer',
-      });
+      // 3. Cek apakah row users sudah ada (mungkin dibuat trigger)
+      //    ✅ filter pakai 'auth_uid' (uuid), bukan 'id' (bigint)
+      final existing = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_uid', authUser.id)
+          .maybeSingle();
+
+      if (existing != null) {
+        // Row sudah ada → UPDATE saja
+        await supabase.from('users').update({
+          'name': nama,
+          'email': email,
+          'phone': _phoneController.text.trim(),
+          'identity_number': _nrpController.text.trim(),
+          'identity_type': 'ktm',
+          'identity_photo_url': ktmUrl,
+          'role': 'customer',
+        }).eq('auth_uid', authUser.id);
+      } else {
+        // Belum ada → INSERT baru
+        //    ✅ 'auth_uid' untuk UUID, biarkan 'id' auto-increment
+        await supabase.from('users').insert({
+          'auth_uid': authUser.id,
+          'name': nama,
+          'email': email,
+          'phone': _phoneController.text.trim(),
+          'identity_number': _nrpController.text.trim(),
+          'identity_type': 'ktm',
+          'identity_photo_url': ktmUrl,
+          'role': 'customer',
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,32 +205,29 @@ class _RegisterCustomerMahasiswaScreenState
             }
           },
         ),
-        title: const Text(
-          'Daftar Sebagai Customer',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Daftar Sebagai Customer',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              // Tab Masuk / Daftar
-              _buildTabSelector(),
-              const SizedBox(height: 20),
-              // Kategori Akun (radio button)
-              _buildKategoriAkun(),
-              const SizedBox(height: 20),
-
-              if (_currentPage == 1) ..._buildPage1(),
-              if (_currentPage == 2) ..._buildPage2(),
-
-              const SizedBox(height: 32),
-            ],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+                _buildTabSelector(),
+                const SizedBox(height: 20),
+                _buildKategoriAkun(),
+                const SizedBox(height: 20),
+                if (_currentPage == 1) ..._buildPage1(),
+                if (_currentPage == 2) ..._buildPage2(),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
@@ -236,42 +238,30 @@ class _RegisterCustomerMahasiswaScreenState
     return [
       _buildLabel('NAMA LENGKAP'),
       const SizedBox(height: 8),
-      _buildTextField(
-        controller: _namaController,
-        hintText: '',
-      ),
+      _buildTextField(controller: _namaController, hintText: ''),
       const SizedBox(height: 20),
       _buildLabel('EMAIL'),
       const SizedBox(height: 8),
       _buildTextField(
-        controller: _emailController,
-        hintText: '',
-        keyboardType: TextInputType.emailAddress,
-      ),
+          controller: _emailController,
+          hintText: '',
+          keyboardType: TextInputType.emailAddress),
       const SizedBox(height: 20),
       _buildLabel('NOMOR WHATSAPP'),
       const SizedBox(height: 8),
       _buildTextField(
-        controller: _phoneController,
-        hintText: '',
-        keyboardType: TextInputType.phone,
-      ),
+          controller: _phoneController,
+          hintText: '',
+          keyboardType: TextInputType.phone),
       const SizedBox(height: 20),
       _buildLabel('INSTITUT / UNIVERSITAS'),
       const SizedBox(height: 8),
-      _buildTextField(
-        controller: _institutController,
-        hintText: '',
-      ),
+      _buildTextField(controller: _institutController, hintText: ''),
       const SizedBox(height: 20),
       _buildLabel('JURUSAN / DEPARTEMEN'),
       const SizedBox(height: 8),
-      _buildTextField(
-        controller: _jurusanController,
-        hintText: '',
-      ),
+      _buildTextField(controller: _jurusanController, hintText: ''),
       const SizedBox(height: 20),
-      // Angkatan dan NRP/NIM sejajar
       Row(
         children: [
           Expanded(
@@ -282,10 +272,9 @@ class _RegisterCustomerMahasiswaScreenState
                 _buildLabel('ANGKATAN'),
                 const SizedBox(height: 8),
                 _buildTextField(
-                  controller: _angkatanController,
-                  hintText: '',
-                  keyboardType: TextInputType.number,
-                ),
+                    controller: _angkatanController,
+                    hintText: '',
+                    keyboardType: TextInputType.number),
               ],
             ),
           ),
@@ -297,36 +286,26 @@ class _RegisterCustomerMahasiswaScreenState
               children: [
                 _buildLabel('NRP / NIM'),
                 const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _nrpController,
-                  hintText: '',
-                ),
+                _buildTextField(controller: _nrpController, hintText: ''),
               ],
             ),
           ),
         ],
       ),
       const SizedBox(height: 32),
-      // Tombol lanjut ke halaman 2 (tidak ada tombol lanjut - langsung scroll ke bawah dan tombol ini lanjut)
       ElevatedButton(
         onPressed: _goToPage2,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFFD54F),
           foregroundColor: Colors.black87,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 1,
         ),
-        child: const Text(
-          'LANJUT',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1,
-          ),
-        ),
+        child: const Text('LANJUT',
+            style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 1)),
       ),
     ];
   }
@@ -336,10 +315,7 @@ class _RegisterCustomerMahasiswaScreenState
       _buildLabel('VERIFIKASI KTM'),
       const SizedBox(height: 8),
       _buildUploadArea(
-        image: _ktmImage,
-        label: 'KLIK UNTUK UPLOAD KTM',
-        onTap: _pickKtmImage,
-      ),
+          image: _ktmImage, label: 'KLIK UNTUK UPLOAD KTM', onTap: _pickKtmImage),
       const SizedBox(height: 20),
       _buildLabel('PASSWORD'),
       const SizedBox(height: 8),
@@ -349,10 +325,9 @@ class _RegisterCustomerMahasiswaScreenState
         obscureText: _obscurePassword,
         suffixIcon: IconButton(
           icon: Icon(
-            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            color: Colors.grey,
-            size: 20,
-          ),
+              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+              color: Colors.grey,
+              size: 20),
           onPressed: () =>
               setState(() => _obscurePassword = !_obscurePassword),
         ),
@@ -366,12 +341,11 @@ class _RegisterCustomerMahasiswaScreenState
         obscureText: _obscureConfirmPassword,
         suffixIcon: IconButton(
           icon: Icon(
-            _obscureConfirmPassword
-                ? Icons.visibility_off
-                : Icons.visibility,
-            color: Colors.grey,
-            size: 20,
-          ),
+              _obscureConfirmPassword
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: Colors.grey,
+              size: 20),
           onPressed: () => setState(
               () => _obscureConfirmPassword = !_obscureConfirmPassword),
         ),
@@ -380,10 +354,8 @@ class _RegisterCustomerMahasiswaScreenState
       _isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7)),
-              ),
-            )
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7))))
           : ElevatedButton(
               onPressed: _daftar,
               style: ElevatedButton.styleFrom(
@@ -391,18 +363,14 @@ class _RegisterCustomerMahasiswaScreenState
                 foregroundColor: Colors.black87,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 1,
               ),
-              child: const Text(
-                'DAFTAR',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                ),
-              ),
+              child: const Text('DAFTAR',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1)),
             ),
     ];
   }
@@ -416,36 +384,19 @@ class _RegisterCustomerMahasiswaScreenState
       ),
       child: Row(
         children: [
-          // Tab Masuk
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginCustomerScreen(),
-                  ),
-                );
-              },
+              onTap: () => Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (_) => const LoginCustomerScreen())),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Masuk',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
+                child: Text('Masuk',
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(fontSize: 14, color: Colors.grey.shade500)),
               ),
             ),
           ),
-          // Tab Daftar (aktif)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -454,15 +405,12 @@ class _RegisterCustomerMahasiswaScreenState
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade400),
               ),
-              child: const Text(
-                'Daftar',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
+              child: const Text('Daftar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87)),
             ),
           ),
         ],
@@ -478,47 +426,34 @@ class _RegisterCustomerMahasiswaScreenState
         const SizedBox(height: 8),
         Row(
           children: [
-            // Mahasiswa (selected)
-            GestureDetector(
-              onTap: () {}, // Already on Mahasiswa page
-              child: Row(
-                children: [
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: const Color(0xFF4FC3F7), width: 2),
-                      color: const Color(0xFF4FC3F7),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.circle, size: 8, color: Colors.white),
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border:
+                        Border.all(color: const Color(0xFF4FC3F7), width: 2),
+                    color: const Color(0xFF4FC3F7),
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'MAHASISWA',
+                  child: const Center(
+                      child: Icon(Icons.circle, size: 8, color: Colors.white)),
+                ),
+                const SizedBox(width: 6),
+                const Text('MAHASISWA',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87)),
+              ],
             ),
             const SizedBox(width: 20),
-            // Umum (tidak selected)
             GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
+              onTap: () => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const RegisterCustomerUmumScreen(),
-                  ),
-                );
-              },
+                      builder: (_) => const RegisterCustomerUmumScreen())),
               child: Row(
                 children: [
                   Container(
@@ -526,20 +461,17 @@ class _RegisterCustomerMahasiswaScreenState
                     height: 18,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.grey.shade400, width: 2),
+                      border:
+                          Border.all(color: Colors.grey.shade400, width: 2),
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'UMUM',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
+                  Text('UMUM',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey.shade600)),
                 ],
               ),
             ),
@@ -562,34 +494,23 @@ class _RegisterCustomerMahasiswaScreenState
         decoration: BoxDecoration(
           color: const Color(0xFFE3F2FD),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF90CAF9),
-            width: 1.5,
-          ),
+          border: Border.all(color: const Color(0xFF90CAF9), width: 1.5),
         ),
         child: image != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.file(image, fit: BoxFit.cover),
-              )
+                child: Image.file(image, fit: BoxFit.cover))
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.add,
-                    size: 32,
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.add, size: 32, color: Colors.grey.shade400),
                   const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+                  Text(label,
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5)),
                 ],
               ),
       ),
@@ -597,15 +518,12 @@ class _RegisterCustomerMahasiswaScreenState
   }
 
   Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: Colors.black87,
-        letterSpacing: 0.5,
-      ),
-    );
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+            letterSpacing: 0.5));
   }
 
   Widget _buildTextField({
@@ -621,31 +539,21 @@ class _RegisterCustomerMahasiswaScreenState
       keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(
-          fontSize: 14,
-          color: Colors.grey.shade400,
-        ),
+        hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
         filled: true,
         fillColor: const Color(0xFFE3F2FD),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF42A5F5),
-            width: 1.5,
-          ),
-        ),
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: Color(0xFF42A5F5), width: 1.5)),
         suffixIcon: suffixIcon,
       ),
     );

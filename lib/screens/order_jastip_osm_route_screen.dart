@@ -135,10 +135,12 @@ class _OrderJastipOsmRouteScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
             child: _isLoading
                 ? const Center(
                     child: Column(
@@ -337,7 +339,8 @@ class _OrderJastipOsmRouteScreenState
                         ],
                       ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

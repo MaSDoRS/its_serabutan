@@ -76,11 +76,14 @@ class _SplashScreenState extends State<SplashScreen>
                   const Spacer(flex: 2),
                   // Maskot - menggunakan gambar maskot bulat sempurna tanpa border putih
                   ClipOval(
-                    child: Image.asset(
-                      'assets/images/mascot.jpg',
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
+                    child: Transform.scale(
+                      scale: 1.4,
+                      child: Image.asset(
+                        'assets/images/mascot.jpg',
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 30),

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class ChatMitraScreen extends StatefulWidget {
   final String mitraName;
+  final String customerName;
 
-  const ChatMitraScreen({super.key, this.mitraName = 'Yazid Alfarizy'});
+  const ChatMitraScreen({
+    super.key,
+    this.mitraName = 'Yazid Alfarizy',
+    this.customerName = 'Customer',
+  });
 
   @override
   State<ChatMitraScreen> createState() => _ChatMitraScreenState();
@@ -48,304 +53,359 @@ class _ChatMitraScreenState extends State<ChatMitraScreen> {
     super.dispose();
   }
 
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _messages.add(_MitraChatMessage(
+        text: text,
+        isUser: true,
+        time: TimeOfDay.now().format(context),
+      ));
+    });
+    _messageController.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header Curvy
-          ClipPath(
-            clipper: _HeaderClipper(),
-            child: Container(
-              width: double.infinity,
-              height: 140,
-              decoration: const BoxDecoration(
-                color: Color(0xFF1565C0), // Dark blue from image
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'MITRA PENYEDIA',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            _buildContactHeader(),
+            Container(height: 1.5, color: Colors.blue.shade50),
+            Expanded(
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                children: [
+                  // Date label
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      // Header Driver Profile
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Row(
-                          children: [
-                            // Avatar
-                            Stack(
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.grey,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 2),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.mitraName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white, // White text in dark header
-                                  ),
-                                ),
-                                const Text(
-                                  'Online',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.white70, // White text in dark header
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.videocam, color: Colors.white, size: 18),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.phone, color: Colors.white70),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.more_vert, color: Colors.white70),
-                          ],
+                      child: Text(
+                        '20/08/2026',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade500,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          
-          // Date
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: const Text(
-                '20/08/2026',
-                style: TextStyle(fontSize: 11, color: Colors.black45),
-              ),
-            ),
-          ),
-
-          // Messages
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return _buildChatBubble(_messages[index]);
-              },
-            ),
-          ),
-          
-          // Input area
-          _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatBubble(_MitraChatMessage message) {
-    return Align(
-      alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (!message.isUser) ...[
-              Container(
-                width: 28,
-                height: 28,
-                margin: const EdgeInsets.only(right: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.grey,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person, color: Colors.white, size: 18),
-              ),
-            ],
-            Column(
-              crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                if (message.isUser)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 2),
-                    child: Text('Dafa Silaban', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                if (!message.isUser)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(widget.mitraName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                  ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.65,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFFBE122), width: 1.5),
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(message.isUser ? 16 : 0),
-                      bottomRight: Radius.circular(message.isUser ? 0 : 16),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        message.text,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF73C2DF),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        message.time,
-                        style: const TextStyle(fontSize: 8, color: Colors.black38),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (message.isUser) ...[
-              Container(
-                width: 28,
-                height: 28,
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.grey,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person, color: Colors.white, size: 18),
+                  ..._messages.map((msg) => _buildMessageBubble(msg)),
+                  const SizedBox(height: 8),
+                ],
               ),
-            ],
+            ),
+            _buildMessageInput(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInputArea() {
+  // ── App Bar ────────────────────────────────────────────────────────────────
+  Widget _buildAppBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding:
+              const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 20),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back,
+                    color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(
+                child: Text(
+                  'Mitra Penyedia',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              // Action icons
+              Icon(Icons.videocam_outlined,
+                  color: Colors.white.withValues(alpha: 0.85), size: 22),
+              const SizedBox(width: 16),
+              Icon(Icons.phone_outlined,
+                  color: Colors.white.withValues(alpha: 0.85), size: 22),
+              const SizedBox(width: 16),
+              Icon(Icons.more_vert,
+                  color: Colors.white.withValues(alpha: 0.85), size: 22),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Contact Header ─────────────────────────────────────────────────────────
+  Widget _buildContactHeader() {
+    // Initial letter dari mitraName
+    final initial =
+        widget.mitraName.isNotEmpty ? widget.mitraName[0].toUpperCase() : 'M';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      child: Row(
+        children: [
+          Stack(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF29B6F6),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              // Online indicator
+              Positioned(
+                bottom: 2,
+                right: 2,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF66BB6A),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.mitraName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Online',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Chat Bubble ────────────────────────────────────────────────────────────
+  Widget _buildMessageBubble(_MitraChatMessage message) {
+    final bool isMe = message.isUser;
+    final String senderName = isMe ? widget.customerName : widget.mitraName;
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            // Sender name
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3, left: 4, right: 4),
+              child: Text(
+                senderName,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            // Bubble
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.68,
+              ),
+              decoration: BoxDecoration(
+                color: isMe
+                    ? const Color(0xFF29B6F6)
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(14),
+                  topRight: const Radius.circular(14),
+                  bottomLeft: Radius.circular(isMe ? 14 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 14),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    message.text,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isMe ? Colors.white : Colors.black87,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    message.time,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: isMe
+                          ? Colors.white.withValues(alpha: 0.7)
+                          : Colors.grey.shade400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Input Area ─────────────────────────────────────────────────────────────
+  Widget _buildMessageInput() {
+    return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
+        child: Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              // Gallery icon
+              Container(
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFBE122)),
-                  borderRadius: BorderRadius.circular(24),
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Icon(Icons.emoji_emotions_outlined, color: Colors.grey.shade400, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: InputDecoration(
-                          hintText: 'Masukkan teks di sini',
-                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
+                child: const Icon(Icons.photo_outlined,
+                    size: 20, color: Color(0xFF0288D1)),
+              ),
+              const SizedBox(width: 10),
+              // Text field
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: TextField(
+                    controller: _messageController,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Masukkan teks di sini',
+                      hintStyle: TextStyle(
+                          fontSize: 13, color: Colors.grey.shade400),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      border: InputBorder.none,
+                      suffixIcon: Icon(Icons.camera_alt_outlined,
+                          size: 22, color: Colors.grey.shade500),
                     ),
-                    Icon(Icons.folder_open, color: Colors.grey.shade600, size: 20),
-                    const SizedBox(width: 8),
-                    Icon(Icons.camera_alt_outlined, color: Colors.grey.shade600, size: 20),
-                    const SizedBox(width: 12),
-                  ],
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFBE122)),
+              const SizedBox(width: 10),
+              // Send button
+              GestureDetector(
+                onTap: _sendMessage,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF29B6F6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.send,
+                      size: 20, color: Colors.white),
+                ),
               ),
-              child: const Icon(Icons.mic, color: Colors.black87),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -362,20 +422,4 @@ class _MitraChatMessage {
     required this.isUser,
     required this.time,
   });
-}
-
-class _HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 20);
-    path.quadraticBezierTo(
-        size.width / 2, size.height + 10, size.width, size.height - 20);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

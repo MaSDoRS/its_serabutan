@@ -77,20 +77,23 @@ class _NotifikasiScreenState extends State<NotifikasiScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: _notifs.isEmpty
-                ? _buildEmpty()
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    itemCount: _notifs.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) => _buildNotifCard(_notifs[index], index),
-                  ),
-          ),
-        ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: _notifs.isEmpty
+                  ? _buildEmpty()
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      itemCount: _notifs.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) => _buildNotifCard(_notifs[index], index),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -33,18 +33,21 @@ class _MitraNavigationScreenState extends State<MitraNavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Shared header
-          _buildMitraHeader(),
-          // Screen content
-          Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _screens,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // Shared header
+            _buildMitraHeader(),
+            // Screen content
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -159,17 +162,15 @@ class _MitraNavigationScreenState extends State<MitraNavigationScreen> {
                     ],
                   ),
                 ),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.pets,
-                    size: 28,
-                    color: Colors.white,
+                ClipOval(
+                  child: Transform.scale(
+                    scale: 1.4,
+                    child: Image.asset(
+                      'assets/images/mascot.jpg',
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ],

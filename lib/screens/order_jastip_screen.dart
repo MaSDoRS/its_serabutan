@@ -24,28 +24,26 @@ class _OrderJastipScreenState extends State<OrderJastipScreen> {
 
   static const _tokoPerKategori = {
     'Makanan & Minuman': [
-      _TokoSaran("McDonald's Keputih", LatLng(-7.2872, 112.8020)),
-      _TokoSaran('Warteg ITS', LatLng(-7.2820, 112.7960)),
-      _TokoSaran('Geprek Bensu', LatLng(-7.2850, 112.7990)),
-      _TokoSaran('Mixue ITS', LatLng(-7.2860, 112.8010)),
-      _TokoSaran('Warkop Sekitar ITS', LatLng(-7.2830, 112.7970)),
+      _TokoSaran('Gacoan Manyar', LatLng(-7.2808, 112.7664)),
+      _TokoSaran("McDonald's Mulyosari", LatLng(-7.2667, 112.7964)),
+      _TokoSaran('Mixue Keputih', LatLng(-7.2942, 112.8052)),
+      _TokoSaran('RM Sederhana Mulyosari', LatLng(-7.2775, 112.7978)),
     ],
     'Alat Tulis': [
-      _TokoSaran('Koperasi ITS', LatLng(-7.2818, 112.7957)),
-      _TokoSaran('Togamas Rungkut', LatLng(-7.2760, 112.7910)),
-      _TokoSaran('Gramedia Tunjungan', LatLng(-7.2574, 112.7382)),
-      _TokoSaran('Toko ATK Sekitar ITS', LatLng(-7.2840, 112.7975)),
+      _TokoSaran('Sakinah Keputih', LatLng(-7.2909, 112.7962)),
+      _TokoSaran('TBMO Dharmahusada', LatLng(-7.2625, 112.7683)),
+      _TokoSaran('Gramedia Manyar', LatLng(-7.2800, 112.7635)),
     ],
     'Kebutuhan Sehari-hari': [
-      _TokoSaran('Indomaret Keputih', LatLng(-7.2890, 112.8040)),
-      _TokoSaran('Alfamart ITS', LatLng(-7.2800, 112.7970)),
-      _TokoSaran('Giant Maspion', LatLng(-7.2927, 112.7786)),
-      _TokoSaran('Hypermart Pakuwon', LatLng(-7.2940, 112.6630)),
+      _TokoSaran('Superindo Mulyosari', LatLng(-7.2644, 112.8034)),
+      _TokoSaran('Sakinah Keputih', LatLng(-7.2909, 112.7962)),
+      _TokoSaran('Alfamidi Mulyosari', LatLng(-7.2652, 112.8026)),
+      _TokoSaran('Hypermart Keputih', LatLng(-7.2895, 112.7868)),
     ],
     'Obat-obatan': [
-      _TokoSaran('Apotek K24 Keputih', LatLng(-7.2850, 112.7980)),
-      _TokoSaran('Kimia Farma Sukolilo', LatLng(-7.2810, 112.7960)),
-      _TokoSaran('Guardian Rungkut', LatLng(-7.2780, 112.8000)),
+      _TokoSaran('K24 Mulyosari', LatLng(-7.2605, 112.7988)),
+      _TokoSaran('Kimia Farma Mulyosari', LatLng(-7.2645, 112.7992)),
+      _TokoSaran('Apotek Keputih', LatLng(-7.2897, 112.8032)),
     ],
     'Lainnya': <_TokoSaran>[],
   };
@@ -83,12 +81,14 @@ class _OrderJastipScreenState extends State<OrderJastipScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -377,7 +377,8 @@ class _OrderJastipScreenState extends State<OrderJastipScreen> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

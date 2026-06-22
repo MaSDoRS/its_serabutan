@@ -29,40 +29,63 @@ class PilihPenyediaJasaScreen extends StatelessWidget {
     },
   ];
 
+  List<Map<String, dynamic>> _filteredPenyedia() {
+    if (orderData.jenisLayanan.isEmpty) return _penyediaList;
+    return _penyediaList.where((p) {
+      final services = List<String>.from(p['services'] as List);
+      return services.any((s) => s.contains(orderData.jenisLayanan));
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredPenyedia();
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    '${_penyediaList.length} Penyedia Jasa Sedang Aktif',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF29B6F6),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      '${filtered.length} Penyedia Jasa Sedang Aktif',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF29B6F6),
+                      ),
                     ),
                   ),
-                ),
-                ..._penyediaList.map(
-                  (penyedia) => _buildMitraCard(
-                    context,
-                    name: penyedia['name'] as String,
-                    initial: penyedia['initial'] as String,
-                    services: List<String>.from(penyedia['services'] as List),
+                  if (filtered.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: Text(
+                          'Belum ada penyedia jasa tersedia\nuntuk layanan ini.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                        ),
+                      ),
+                    ),
+                  ...filtered.map(
+                    (penyedia) => _buildMitraCard(
+                      context,
+                      name: penyedia['name'] as String,
+                      initial: penyedia['initial'] as String,
+                      services: List<String>.from(penyedia['services'] as List),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

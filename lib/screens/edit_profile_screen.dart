@@ -108,54 +108,57 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          if (_isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 24),
-                    _buildAvatar(),
-                    const SizedBox(height: 28),
-                    _buildSectionHeader('DATA DIRI'),
-                    const SizedBox(height: 20),
-                    _buildLabel('NAMA LENGKAP'),
-                    const SizedBox(height: 8),
-                    _buildTextField(controller: _namaController),
-                    const SizedBox(height: 18),
-                    _buildLabel('EMAIL'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: TextEditingController(text: _email),
-                      enabled: false,
-                    ),
-                    const SizedBox(height: 18),
-                    _buildLabel('NOMOR WHATSAPP'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _whatsappController,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 18),
-                    _buildLabel('NRP / NIM'),
-                    const SizedBox(height: 8),
-                    _buildTextField(controller: _nrpController),
-                    const SizedBox(height: 28),
-                    if (_isVerified) _buildVerifikasiIdentitas(),
-                    const SizedBox(height: 28),
-                    _buildSaveButton(),
-                    const SizedBox(height: 32),
-                  ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            if (_isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildAvatar(),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader('DATA DIRI'),
+                      const SizedBox(height: 20),
+                      _buildLabel('NAMA LENGKAP'),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: _namaController),
+                      const SizedBox(height: 18),
+                      _buildLabel('EMAIL'),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        controller: TextEditingController(text: _email),
+                        enabled: false,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildLabel('NOMOR WHATSAPP'),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        controller: _whatsappController,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildLabel('NRP / NIM'),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: _nrpController),
+                      const SizedBox(height: 28),
+                      if (_isVerified) _buildVerifikasiIdentitas(),
+                      const SizedBox(height: 28),
+                      _buildSaveButton(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

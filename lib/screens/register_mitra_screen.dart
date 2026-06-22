@@ -105,7 +105,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
     setState(() => _isLoading = true);
     try {
-      // 1. Sign up – kalau email sudah ada di Auth (gagal di tengah sebelumnya), sign in saja
+      // 1. Sign up
       User? authUser;
       try {
         final res = await _supabase.auth.signUp(
@@ -128,35 +128,79 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
 
       if (authUser == null) throw Exception('Gagal membuat akun');
 
-      // 2. Upsert ke tabel users (pakai UUID dari Auth sebagai id)
-      await _supabase.from('users').upsert({
-        'id': authUser.id,
-        'name': nama,
-        'email': email,
-        'phone': whatsapp,
-        'identity_number': nrp,
-        'identity_type': 'ktm',
-        'role': 'provider',
-      }, onConflict: 'id');
+      // 2. Cek apakah row users sudah ada (mungkin dibuat trigger)
+      final existing = await _supabase
+          .from('users')
+          .select('id')
+          .eq('auth_uid', authUser.id)
+          .maybeSingle();
+
+      int userId;
+      if (existing != null) {
+        // Row sudah ada → UPDATE saja
+        await _supabase.from('users').update({
+          'name': nama,
+          'email': email,
+          'phone': whatsapp,
+          'identity_number': nrp,
+          'identity_type': 'ktm',
+          'role': 'provider',
+        }).eq('auth_uid', authUser.id);
+        userId = existing['id'] as int;
+      } else {
+        // Belum ada → INSERT baru
+        final insertResult = await _supabase
+            .from('users')
+            .insert({
+              'auth_uid': authUser.id,
+              'name': nama,
+              'email': email,
+              'phone': whatsapp,
+              'identity_number': nrp,
+              'identity_type': 'ktm',
+              'role': 'provider',
+            })
+            .select('id')
+            .single();
+        userId = insertResult['id'] as int;
+      }
 
       // 3. Upload foto KTM
       final fileName = 'ktm_mitra_${authUser.id}.jpg';
       await _supabase.storage.from('identity_photos').upload(
-        fileName,
-        _ktmImage!,
-        fileOptions: const FileOptions(upsert: true),
-      );
-      final ktmUrl = _supabase.storage.from('identity_photos').getPublicUrl(fileName);
+            fileName,
+            _ktmImage!,
+            fileOptions: const FileOptions(upsert: true),
+          );
+      final ktmUrl =
+          _supabase.storage.from('identity_photos').getPublicUrl(fileName);
 
-      await _supabase.from('users').update({
-        'identity_photo_url': ktmUrl,
-      }).eq('id', authUser.id);
+      // 4. Update identity_photo_url
+      await _supabase
+          .from('users')
+          .update({'identity_photo_url': ktmUrl})
+          .eq('auth_uid', authUser.id);
 
-      // 4. Upsert ke tabel providers
-      await _supabase.from('providers').upsert({
-        'user_id': authUser.id,
-        'status': 'active',
-      }, onConflict: 'user_id');
+      // 5. Cek apakah row providers sudah ada
+      final existingProvider = await _supabase
+          .from('providers')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (existingProvider != null) {
+        // Sudah ada → UPDATE status saja
+        await _supabase
+            .from('providers')
+            .update({'status': 'aktif'})
+            .eq('user_id', userId);
+      } else {
+        // Belum ada → INSERT baru
+        await _supabase.from('providers').insert({
+          'user_id': userId,
+          'status': 'aktif',
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,164 +244,154 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 20),
-                  _buildTabSelector(),
-                  const SizedBox(height: 28),
-
-                  // ── DATA DIRI ──
-                  _buildSectionLabel('DATA DIRI'),
-                  const SizedBox(height: 12),
-                  _buildLabel('NAMA LENGKAP'),
-                  const SizedBox(height: 8),
-                  _buildTextField(controller: _namaController),
-                  const SizedBox(height: 16),
-                  _buildLabel('EMAIL'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 16),
-                  _buildLabel('NOMOR WHATSAPP'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                      controller: _whatsappController,
-                      keyboardType: TextInputType.phone),
-                  const SizedBox(height: 16),
-                  _buildLabel('JURUSAN / DEPARTEMEN'),
-                  const SizedBox(height: 8),
-                  _buildTextField(controller: _jurusanController),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel('ANGKATAN'),
-                            const SizedBox(height: 8),
-                            _buildTextField(
-                                controller: _angkatanController,
-                                keyboardType: TextInputType.number),
-                          ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildTabSelector(),
+                    const SizedBox(height: 28),
+                    _buildSectionLabel('DATA DIRI'),
+                    const SizedBox(height: 12),
+                    _buildLabel('NAMA LENGKAP'),
+                    const SizedBox(height: 8),
+                    _buildTextField(controller: _namaController),
+                    const SizedBox(height: 16),
+                    _buildLabel('EMAIL'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress),
+                    const SizedBox(height: 16),
+                    _buildLabel('NOMOR WHATSAPP'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                        controller: _whatsappController,
+                        keyboardType: TextInputType.phone),
+                    const SizedBox(height: 16),
+                    _buildLabel('JURUSAN / DEPARTEMEN'),
+                    const SizedBox(height: 8),
+                    _buildTextField(controller: _jurusanController),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel('ANGKATAN'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                  controller: _angkatanController,
+                                  keyboardType: TextInputType.number),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel('NRP'),
-                            const SizedBox(height: 8),
-                            _buildTextField(controller: _nrpController),
-                          ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel('NRP'),
+                              const SizedBox(height: 8),
+                              _buildTextField(controller: _nrpController),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── VERIFIKASI KTM ──
-                  _buildSectionLabel('VERIFIKASI KTM'),
-                  const SizedBox(height: 12),
-                  _buildUploadArea(),
-
-                  const SizedBox(height: 28),
-
-                  // ── PASSWORD ──
-                  _buildSectionLabel('PASSWORD'),
-                  const SizedBox(height: 12),
-                  _buildLabel('PASSWORD'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
-                        size: 20,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildLabel('ULANGI PASSWORD'),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: Colors.grey,
-                        size: 20,
+                    const SizedBox(height: 28),
+                    _buildSectionLabel('VERIFIKASI KTM'),
+                    const SizedBox(height: 12),
+                    _buildUploadArea(),
+                    const SizedBox(height: 28),
+                    _buildSectionLabel('PASSWORD'),
+                    const SizedBox(height: 12),
+                    _buildLabel('PASSWORD'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
                       ),
-                      onPressed: () => setState(() =>
-                          _obscureConfirmPassword = !_obscureConfirmPassword),
                     ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // ── PILIH KEAHLIAN ──
-                  _buildSectionLabel('PILIH KEAHLIAN'),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Pilih minimal 1 peran yang bisa kamu kerjakan',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 12),
-                  ...List.generate(_keahlianList.length,
-                      (i) => _buildKeahlianCard(_keahlianList[i])),
-
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 16),
+                    _buildLabel('ULANGI PASSWORD'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () => setState(() =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    _buildSectionLabel('PILIH KEAHLIAN'),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pilih minimal 1 peran yang bisa kamu kerjakan',
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 12),
+                    ...List.generate(_keahlianList.length,
+                        (i) => _buildKeahlianCard(_keahlianList[i])),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
-          ),
-
-          // ── TOMBOL DAFTAR ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: SizedBox(
-              width: double.infinity,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _daftar,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFD54F),
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton(
+                        onPressed: _daftar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFD54F),
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 2,
+                        ),
+                        child: const Text('DAFTAR',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5)),
                       ),
-                      child: const Text(
-                        'DAFTAR',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5),
-                      ),
-                    ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -379,8 +413,7 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text('Masuk',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 14, color: Colors.grey.shade500)),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
               ),
             ),
           ),
@@ -406,25 +439,21 @@ class _RegisterMitraScreenState extends State<RegisterMitraScreen> {
   }
 
   Widget _buildSectionLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w800,
-          color: Color(0xFF1565C0),
-          letterSpacing: 0.5),
-    );
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF1565C0),
+            letterSpacing: 0.5));
   }
 
   Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-          letterSpacing: 0.5),
-    );
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.black87,
+            letterSpacing: 0.5));
   }
 
   Widget _buildTextField({

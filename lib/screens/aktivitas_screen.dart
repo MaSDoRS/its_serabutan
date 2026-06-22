@@ -94,24 +94,27 @@ class _AktivitasScreenState extends State<AktivitasScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          const SizedBox(height: 12),
-          _buildTabBar(),
-          const SizedBox(height: 8),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildList(_byTab('riwayat'), emptyMessage: 'Belum ada riwayat pesanan'),
-                _buildList(_byTab('proses'), emptyMessage: 'Tidak ada pesanan yang sedang diproses'),
-                _buildList(_byTab('terjadwal'), emptyMessage: 'Tidak ada pesanan terjadwal'),
-                _buildList(_byTab('draft'), emptyMessage: 'Tidak ada draft tersimpan'),
-              ],
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            const SizedBox(height: 12),
+            _buildTabBar(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildList(_byTab('riwayat'), emptyMessage: 'Belum ada riwayat pesanan'),
+                  _buildList(_byTab('proses'), emptyMessage: 'Tidak ada pesanan yang sedang diproses'),
+                  _buildList(_byTab('terjadwal'), emptyMessage: 'Tidak ada pesanan terjadwal'),
+                  _buildList(_byTab('draft'), emptyMessage: 'Tidak ada draft tersimpan'),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

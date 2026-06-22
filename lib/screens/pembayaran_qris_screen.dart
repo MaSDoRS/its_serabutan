@@ -139,8 +139,7 @@ class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
                   // QR code
                   Center(
                     child: Container(
-                      width: 220,
-                      height: 220,
+                      width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -153,7 +152,13 @@ class _PembayaranQrisScreenState extends State<PembayaranQrisScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.qr_code_2, size: 200, color: Color(0xFF0288D1)),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/images/qrisitsserabutan.jpeg',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
                   ),
 

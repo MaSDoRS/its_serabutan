@@ -20,85 +20,88 @@ class PembayaranScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                children: [
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Pilih Metode Pembayaran',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Pilih Metode Pembayaran',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE3F2FD),
-                      borderRadius: BorderRadius.circular(16),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          Text('Total yang harus dibayar',
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Rp $total',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0288D1),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      children: [
-                        Text('Total yang harus dibayar',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Rp $total',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0288D1),
+                    const SizedBox(height: 32),
+                    _buildPaymentOption(
+                      context,
+                      icon: Icons.qr_code_2,
+                      label: 'QRIS',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PembayaranQrisScreen(
+                            totalHarga: total,
+                            jenisLayanan: jenisLayanan,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildPaymentOption(
-                    context,
-                    icon: Icons.qr_code_2,
-                    label: 'QRIS',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PembayaranQrisScreen(
-                          totalHarga: total,
-                          jenisLayanan: jenisLayanan,
-                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildPaymentOption(
-                    context,
-                    icon: Icons.payments_outlined,
-                    label: 'CASH',
-                    onTap: () => Navigator.pushAndRemoveUntil(
+                    const SizedBox(height: 20),
+                    _buildPaymentOption(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => PesananDikonfirmasiScreen(
-                          mitraName: mitraName,
-                          mitraInitial: mitraInitial,
-                          jenisLayanan: jenisLayanan,
-                          total: total,
+                      icon: Icons.payments_outlined,
+                      label: 'CASH',
+                      onTap: () => Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PesananDikonfirmasiScreen(
+                            mitraName: mitraName,
+                            mitraInitial: mitraInitial,
+                            jenisLayanan: jenisLayanan,
+                            total: total,
+                          ),
                         ),
+                        (route) => route.isFirst,
                       ),
-                      (route) => route.isFirst,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

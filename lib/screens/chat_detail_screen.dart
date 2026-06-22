@@ -123,44 +123,47 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          _buildContactHeader(),
-          if (widget.orderData.jenisLayanan.isNotEmpty) _buildOrderSummaryBar(),
-          Container(height: 1.5, color: Colors.blue.shade50),
-          Expanded(
-            child: ListView(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              children: [
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      'TODAY',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade500,
-                        letterSpacing: 0.5,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            _buildContactHeader(),
+            if (widget.orderData.jenisLayanan.isNotEmpty) _buildOrderSummaryBar(),
+            Container(height: 1.5, color: Colors.blue.shade50),
+            Expanded(
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        'TODAY',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade500,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                ..._messages.map((msg) => _buildMessageBubble(msg)),
-                const SizedBox(height: 8),
-              ],
+                  ..._messages.map((msg) => _buildMessageBubble(msg)),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
-          ),
-          _buildPriceOfferCard(),
-          _buildMessageInput(),
-        ],
+            _buildPriceOfferCard(),
+            _buildMessageInput(),
+          ],
+        ),
       ),
     );
   }

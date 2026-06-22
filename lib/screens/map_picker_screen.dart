@@ -118,10 +118,12 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
             child: Stack(
               children: [
                 // Peta
@@ -338,7 +340,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               ],
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

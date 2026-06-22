@@ -47,14 +47,14 @@ class _RegisterMitraKeahlianScreenState
     ),
     _KeahlianItem(
       title: 'Tenaga & Logistik',
-      description: 'Angkut barang pindahan, angkat batat beres, dsb.',
+      description: 'Angkut barang pindahan, angkat barang beres, dsb.',
       icon: Icons.local_shipping,
       color: const Color(0xFFE65100),
     ),
     _KeahlianItem(
       title: 'Kebersihan',
       description:
-          'Bersihih kamar kos, kontrakan, rumah, cuci kendaraan, dsb.',
+          'Bersihkan kamar kos, kontrakan, rumah, cuci kendaraan, dsb.',
       icon: Icons.cleaning_services,
       color: const Color(0xFF2E7D32),
     ),
@@ -81,56 +81,102 @@ class _RegisterMitraKeahlianScreenState
   ];
 
   Future<void> _registerMitra() async {
-    if (_isLoading) return;
+    if (_selectedKeahlian.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih minimal 1 keahlian'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
+    if (_isLoading) return;
     setState(() => _isLoading = true);
+
     try {
       // 1. Sign Up user in Supabase Auth
       final response = await supabase.auth.signUp(
         email: widget.email,
         password: widget.password,
-        data: {
-          'full_name': widget.nama,
-        },
+        data: {'full_name': widget.nama},
       );
 
       final authUser = response.user;
       if (authUser == null) throw Exception('Gagal melakukan pendaftaran akun');
 
-      // 2. Insert into users table
-      await supabase.from('users').insert({
-        'id': authUser.id,
-        'name': widget.nama,
-        'email': widget.email,
-        'phone': widget.whatsapp,
-        'identity_number': widget.nrp,
-        'identity_type': 'ktm',
-        'role': 'provider',
-      });
+      // 2. Cek apakah row users sudah ada (mungkin dibuat trigger)
+      final existing = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_uid', authUser.id)
+          .maybeSingle();
+
+      int userId;
+      if (existing != null) {
+        // Row sudah ada → UPDATE saja
+        await supabase.from('users').update({
+          'name': widget.nama,
+          'email': widget.email,
+          'phone': widget.whatsapp,
+          'identity_number': widget.nrp,
+          'identity_type': 'ktm',
+          'role': 'provider',
+        }).eq('auth_uid', authUser.id);
+        userId = existing['id'] as int;
+      } else {
+        // Belum ada → INSERT baru
+        final insertResult = await supabase
+            .from('users')
+            .insert({
+              'auth_uid': authUser.id,
+              'name': widget.nama,
+              'email': widget.email,
+              'phone': widget.whatsapp,
+              'identity_number': widget.nrp,
+              'identity_type': 'ktm',
+              'role': 'provider',
+            })
+            .select('id')
+            .single();
+        userId = insertResult['id'] as int;
+      }
 
       // 3. Upload KTM image to Storage
       final fileName = 'ktm_mitra_${authUser.id}.jpg';
-      await supabase.storage
-          .from('identity_photos')
-          .upload(
+      await supabase.storage.from('identity_photos').upload(
             fileName,
             widget.ktmImage,
             fileOptions: const FileOptions(upsert: true),
           );
-      final ktmUrl = supabase.storage
-          .from('identity_photos')
-          .getPublicUrl(fileName);
+      final ktmUrl =
+          supabase.storage.from('identity_photos').getPublicUrl(fileName);
 
-      // Update user with identity photo url
-      await supabase.from('users').update({
-        'identity_photo_url': ktmUrl,
-      }).eq('id', authUser.id);
+      // 4. Update identity_photo_url
+      await supabase
+          .from('users')
+          .update({'identity_photo_url': ktmUrl})
+          .eq('auth_uid', authUser.id);
 
-      // 4. Insert into providers table
-      await supabase.from('providers').insert({
-        'user_id': authUser.id,
-        'status': 'active',
-      });
+      // 5. Cek apakah row providers sudah ada
+      final existingProvider = await supabase
+          .from('providers')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (existingProvider != null) {
+        // Sudah ada → UPDATE status saja
+        await supabase
+            .from('providers')
+            .update({'status': 'aktif'})
+            .eq('user_id', userId);
+      } else {
+        // Belum ada → INSERT baru
+        await supabase.from('providers').insert({
+          'user_id': userId,
+          'status': 'aktif',
+              }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -141,7 +187,8 @@ class _RegisterMitraKeahlianScreenState
         );
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MitraNavigationScreen()),
+          MaterialPageRoute(
+              builder: (context) => const MitraNavigationScreen()),
           (route) => false,
         );
       }
@@ -171,88 +218,79 @@ class _RegisterMitraKeahlianScreenState
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Daftar Sebagai Mitra',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: const Text('Daftar Sebagai Mitra',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildTabSelector(),
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Apa saja yang bisa kamu kerjakan?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1565C0),
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Kamu bisa pilih minimal 1 peran dan centang semua jika bisa melakukan apa saja!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ...List.generate(_keahlianList.length, (index) {
-                      final item = _keahlianList[index];
-                      return _buildKeahlianCard(item);
-                    }),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Tombol Daftar (sticky bottom)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            child: SizedBox(
-              width: double.infinity,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _selectedKeahlian.isEmpty ? null : _registerMitra,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFD54F),
-                        foregroundColor: Colors.black87,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade500,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'DAFTAR',
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildTabSelector(),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'Apa saja yang bisa kamu kerjakan?',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
+                          color: Color(0xFF1565C0),
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Kamu bisa pilih minimal 1 peran dan centang semua jika bisa melakukan apa saja!',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            height: 1.4),
+                      ),
+                      const SizedBox(height: 20),
+                      ...List.generate(_keahlianList.length,
+                          (index) => _buildKeahlianCard(_keahlianList[index])),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton(
+                        onPressed:
+                            _selectedKeahlian.isEmpty ? null : _registerMitra,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFD54F),
+                          foregroundColor: Colors.black87,
+                          disabledBackgroundColor: Colors.grey.shade300,
+                          disabledForegroundColor: Colors.grey.shade500,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          elevation: 2,
+                        ),
+                        child: const Text('DAFTAR',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5)),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -268,29 +306,16 @@ class _RegisterMitraKeahlianScreenState
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginMitraScreen(),
-                  ),
-                );
-              },
+              onTap: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const LoginMitraScreen()),
+              ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Masuk',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
+                child: Text('Masuk',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
               ),
             ),
           ),
@@ -302,15 +327,12 @@ class _RegisterMitraKeahlianScreenState
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade400),
               ),
-              child: const Text(
-                'Daftar',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
+              child: const Text('Daftar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87)),
             ),
           ),
         ],
@@ -325,15 +347,9 @@ class _RegisterMitraKeahlianScreenState
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            setState(() {
-              if (isSelected) {
-                _selectedKeahlian.remove(item.title);
-              } else {
-                _selectedKeahlian.add(item.title);
-              }
-            });
-          },
+          onTap: () => setState(() => isSelected
+              ? _selectedKeahlian.remove(item.title)
+              : _selectedKeahlian.add(item.title)),
           borderRadius: BorderRadius.circular(14),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -344,9 +360,8 @@ class _RegisterMitraKeahlianScreenState
                   : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? item.color : Colors.grey.shade200,
-                width: isSelected ? 2 : 1,
-              ),
+                  color: isSelected ? item.color : Colors.grey.shade200,
+                  width: isSelected ? 2 : 1),
             ),
             child: Row(
               children: [
@@ -357,36 +372,26 @@ class _RegisterMitraKeahlianScreenState
                     color: item.color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    item.icon,
-                    color: item.color,
-                    size: 22,
-                  ),
+                  child: Icon(item.icon, color: item.color, size: 22),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        item.title,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: item.color,
-                        ),
-                      ),
+                      Text(item.title,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: item.color)),
                       const SizedBox(height: 2),
-                      Text(
-                        item.description,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(item.description,
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
+                              height: 1.3),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -399,16 +404,11 @@ class _RegisterMitraKeahlianScreenState
                     color: isSelected ? item.color : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isSelected ? item.color : Colors.grey.shade400,
-                      width: 2,
-                    ),
+                        color: isSelected ? item.color : Colors.grey.shade400,
+                        width: 2),
                   ),
                   child: isSelected
-                      ? const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
-                        )
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
                       : null,
                 ),
               ],

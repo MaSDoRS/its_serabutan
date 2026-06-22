@@ -82,11 +82,14 @@ class BerandaScreen extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           ClipOval(
-            child: Image.asset(
-              'assets/images/mascot.jpg',
-              width: 70,
-              height: 70,
-              fit: BoxFit.cover,
+            child: Transform.scale(
+              scale: 1.4,
+              child: Image.asset(
+                'assets/images/mascot.jpg',
+                width: 70,
+                height: 70,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ],

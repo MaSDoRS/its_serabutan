@@ -30,6 +30,7 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return false;
 
+    // ✅ filter pakai 'auth_uid' (uuid), bukan 'id' (bigint)
     final existing = await supabase
         .from('users')
         .select('phone, identity_number')
@@ -114,88 +115,86 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                // Tab Masuk / Daftar
-                _buildTabSelector(isLogin: true),
-                const SizedBox(height: 28),
-
-                // Email
-                _buildLabel('EMAIL'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _emailController,
-                  hintText: '',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                      return 'Format email tidak valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Password
-                _buildLabel('PASSWORD'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _passwordController,
-                  hintText: '',
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  _buildTabSelector(isLogin: true),
+                  const SizedBox(height: 28),
+                  _buildLabel('EMAIL'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _emailController,
+                    hintText: '',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
-                    if (v.length < 6) return 'Password minimal 6 karakter';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Tombol MASUK
-                _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7)),
-                        ),
-                      )
-                    : ElevatedButton(
-                        onPressed: _loginWithEmailPassword,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFD54F),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 1,
-                        ),
-                        child: const Text(
-                          'MASUK',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                  const SizedBox(height: 20),
+                  _buildLabel('PASSWORD'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _passwordController,
+                    hintText: '',
+                    obscureText: _obscurePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                        size: 20,
                       ),
-                const SizedBox(height: 32),
-              ],
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
+                      if (v.length < 6) return 'Password minimal 6 karakter';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF4FC3F7)),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: _loginWithEmailPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD54F),
+                            foregroundColor: Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 1,
+                          ),
+                          child: const Text(
+                            'MASUK',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
@@ -212,7 +211,6 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
       ),
       child: Row(
         children: [
-          // Tab Masuk (aktif)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -232,14 +230,14 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
               ),
             ),
           ),
-          // Tab Daftar
           Expanded(
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const RegisterCustomerMahasiswaScreen(),
+                    builder: (context) =>
+                        const RegisterCustomerMahasiswaScreen(),
                   ),
                 );
               },
@@ -296,7 +294,8 @@ class _LoginCustomerScreenState extends State<LoginCustomerScreen> {
         hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
         filled: true,
         fillColor: const Color(0xFFE3F2FD),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

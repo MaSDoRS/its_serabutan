@@ -305,9 +305,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/mascot.jpg',
-                          fit: BoxFit.cover,
+                        child: Transform.scale(
+                          scale: 1.4,
+                          child: Image.asset(
+                            'assets/images/mascot.jpg',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),

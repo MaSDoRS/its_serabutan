@@ -143,32 +143,35 @@ class _UlasanScreenState extends State<UlasanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_pending.isNotEmpty) ...[
-                    _buildSectionLabel('BELUM DIULAS'),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_pending.isNotEmpty) ...[
+                      _buildSectionLabel('BELUM DIULAS'),
+                      const SizedBox(height: 10),
+                      ..._pending.map((p) => _buildPendingCard(p)),
+                      const SizedBox(height: 20),
+                    ],
+                    _buildSectionLabel('ULASAN SAYA'),
                     const SizedBox(height: 10),
-                    ..._pending.map((p) => _buildPendingCard(p)),
-                    const SizedBox(height: 20),
+                    if (_reviews.isEmpty)
+                      _buildEmpty()
+                    else
+                      ..._reviews.map((r) => _buildReviewCard(r)),
                   ],
-                  _buildSectionLabel('ULASAN SAYA'),
-                  const SizedBox(height: 10),
-                  if (_reviews.isEmpty)
-                    _buildEmpty()
-                  else
-                    ..._reviews.map((r) => _buildReviewCard(r)),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

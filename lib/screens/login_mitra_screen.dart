@@ -30,7 +30,8 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return;
 
-    var userRow = await supabase
+    // ✅ Cek pakai 'auth_uid' (uuid), bukan 'id' (bigint)
+    final userRow = await supabase
         .from('users')
         .select('id')
         .eq('auth_uid', authUser.id)
@@ -38,11 +39,13 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
 
     int userId;
     if (userRow == null) {
+      // Fallback jika registrasi tidak tuntas → INSERT baru
+      // ✅ 'auth_uid' untuk UUID, biarkan 'id' auto-increment
       final inserted = await supabase
           .from('users')
           .insert({
             'auth_uid': authUser.id,
-            'name': authUser.userMetadata?['name'] ?? splitPart(authUser.email),
+            'name': _splitPart(authUser.email),
             'email': authUser.email,
             'role': 'provider',
           })
@@ -51,9 +54,9 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
       userId = inserted['id'] as int;
     } else {
       userId = userRow['id'] as int;
-      await supabase.from('users').update({'role': 'provider'}).eq('id', userId);
     }
 
+    // ✅ Cek providers pakai bigint userId, bukan UUID
     final providerRow = await supabase
         .from('providers')
         .select('id')
@@ -62,13 +65,13 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
 
     if (providerRow == null) {
       await supabase.from('providers').insert({
-        'user_id': userId,
-        'status': 'active',
+        'user_id': userId,   // ✅ bigint
+        'status': 'aktif',   // ✅ sesuai constraint: 'aktif'/'non-aktif'/'suspended'
       });
     }
   }
 
-  String splitPart(String? email) {
+  String _splitPart(String? email) {
     if (email == null) return 'Mitra Baru';
     return email.split('@')[0];
   }
@@ -144,88 +147,89 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                // Tab Masuk / Daftar
-                _buildTabSelector(isLogin: true),
-                const SizedBox(height: 28),
-
-                // Email
-                _buildLabel('EMAIL'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _emailController,
-                  hintText: '',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                      return 'Format email tidak valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Password
-                _buildLabel('PASSWORD'),
-                const SizedBox(height: 8),
-                _buildTextField(
-                  controller: _passwordController,
-                  hintText: '',
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  _buildTabSelector(isLogin: true),
+                  const SizedBox(height: 28),
+                  _buildLabel('EMAIL'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _emailController,
+                    hintText: '',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Email tidak boleh kosong';
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(v)) {
+                        return 'Format email tidak valid';
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
-                    if (v.length < 6) return 'Password minimal 6 karakter';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Tombol MASUK
-                _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7)),
-                        ),
-                      )
-                    : ElevatedButton(
-                        onPressed: _loginMitraWithEmailPassword,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFD54F),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 1,
-                        ),
-                        child: const Text(
-                          'MASUK',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                  const SizedBox(height: 20),
+                  _buildLabel('PASSWORD'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _passwordController,
+                    hintText: '',
+                    obscureText: _obscurePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.grey,
+                        size: 20,
                       ),
-                const SizedBox(height: 32),
-              ],
+                      onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Password tidak boleh kosong';
+                      if (v.length < 6) return 'Password minimal 6 karakter';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF4FC3F7)),
+                          ),
+                        )
+                      : ElevatedButton(
+                          onPressed: _loginMitraWithEmailPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD54F),
+                            foregroundColor: Colors.black87,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 1,
+                          ),
+                          child: const Text(
+                            'MASUK',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
@@ -242,14 +246,14 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
       ),
       child: Row(
         children: [
-          // Tab Masuk (aktif)
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 color: isLogin ? Colors.white : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                border: isLogin ? Border.all(color: Colors.grey.shade400) : null,
+                border:
+                    isLogin ? Border.all(color: Colors.grey.shade400) : null,
               ),
               child: Text(
                 'Masuk',
@@ -262,7 +266,6 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
               ),
             ),
           ),
-          // Tab Daftar
           Expanded(
             child: GestureDetector(
               onTap: () {
@@ -326,7 +329,8 @@ class _LoginMitraScreenState extends State<LoginMitraScreen> {
         hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
         filled: true,
         fillColor: const Color(0xFFE3F2FD),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

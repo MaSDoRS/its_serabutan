@@ -73,7 +73,9 @@ class _MencariMitraScreenState extends State<MencariMitraScreen>
           child: Container(),
         ),
       ),
-      body: Column(
+      body: SafeArea(
+        top: false,
+        child: Column(
         children: [
           // Order summary card (overflowing from appbar conceptually)
           Transform.translate(
@@ -226,6 +228,7 @@ class _MencariMitraScreenState extends State<MencariMitraScreen>
             ),
           ),
         ],
+        ),
       ),
     );
   }

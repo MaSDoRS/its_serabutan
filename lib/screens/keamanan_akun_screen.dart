@@ -75,12 +75,14 @@ class _KeamananAkunScreenState extends State<KeamananAkunScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F8FC),
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -188,7 +190,8 @@ class _KeamananAkunScreenState extends State<KeamananAkunScreen> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

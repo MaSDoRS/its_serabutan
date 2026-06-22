@@ -24,40 +24,63 @@ class PilihMitraScreen extends StatelessWidget {
     },
   ];
 
+  List<Map<String, dynamic>> _filteredMitra() {
+    if (orderData.jenisLayanan.isEmpty) return _mitraList;
+    return _mitraList.where((m) {
+      final services = List<String>.from(m['services'] as List);
+      return services.any((s) => s.contains(orderData.jenisLayanan));
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredMitra();
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          _buildAppBar(context),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Text(
-                    '${_mitraList.length} Mitra Sedang Aktif',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF29B6F6),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      '${filtered.length} Mitra Sedang Aktif',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF29B6F6),
+                      ),
                     ),
                   ),
-                ),
-                ..._mitraList.map(
-                  (mitra) => _buildMitraCard(
-                    context,
-                    name: mitra['name'] as String,
-                    initial: mitra['initial'] as String,
-                    services: List<String>.from(mitra['services'] as List),
+                  if (filtered.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: Text(
+                          'Belum ada mitra tersedia\nuntuk layanan ini.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                        ),
+                      ),
+                    ),
+                  ...filtered.map(
+                    (mitra) => _buildMitraCard(
+                      context,
+                      name: mitra['name'] as String,
+                      initial: mitra['initial'] as String,
+                      services: List<String>.from(mitra['services'] as List),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
